@@ -9,6 +9,8 @@ type UserInterface interface {
 	CreateUser(user *model.UserModel) error
 	GetUserByUsername(username string) (*model.UserModel, error)
 	GetUserById(id int32) (*model.UserModel, error)
+	GetUserByOpenId(openId string) (*model.UserModel, error)
+	GetUserByUnionId(unionId string) (*model.UserModel, error)
 	GetUsersByPage(page, pageSize int) ([]*model.UserModel, int64, error)
 }
 

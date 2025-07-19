@@ -25,6 +25,15 @@
 
 示例：`GET /api/test/user?page=1&pageSize=10`
 
+### 微信请求头（POST创建用户时自动获取）
+系统会自动从请求头中获取以下微信用户信息：
+- `X-WX-OPENID`: 小程序用户 openid
+- `X-WX-UNIONID`: 小程序用户 unionid
+- `X-WX-APPID`: 小程序 AppID
+- `X-WX-FROM-OPENID`: 资源复用情况下的小程序用户 openid
+- `X-WX-FROM-UNIONID`: 资源复用情况下的小程序用户 unionid
+- `X-WX-FROM-APPID`: 资源复用情况下的小程序 AppID
+
 ## 响应格式
 
 ### POST 成功响应
@@ -33,7 +42,10 @@
   "code": 0,
   "data": {
     "id": 1,
-    "username": "testuser"
+    "username": "testuser",
+    "openid": "wx_openid_123",
+    "unionid": "wx_unionid_456",
+    "appid": "wx_appid_789"
   }
 }
 ```
@@ -46,11 +58,17 @@
     "users": [
       {
         "id": 1,
-        "username": "user1"
+        "username": "user1",
+        "openid": "wx_openid_123",
+        "unionid": "wx_unionid_456",
+        "appid": "wx_appid_789"
       },
       {
         "id": 2,
-        "username": "user2"
+        "username": "user2",
+        "openid": "wx_openid_456",
+        "unionid": "wx_unionid_789",
+        "appid": "wx_appid_123"
       }
     ],
     "total": 25,
@@ -77,6 +95,7 @@
 - 用户名不能为空
 - 密码不能为空
 - 用户名已存在
+- 该微信用户已存在
 - 解析请求参数失败
 - 创建用户失败
 - 页码参数无效
@@ -139,8 +158,11 @@ fetch('/api/test/user?page=2&pageSize=20')
 
 ## 注意事项
 1. 用户名具有唯一性，不能重复
-2. 密码目前以明文存储，生产环境建议加密
-3. POST 接口用于创建用户，GET 接口用于分页查询用户
-4. 返回的用户信息不包含密码字段
-5. 分页查询默认每页10条，最大100条
-6. 分页查询按用户ID倒序排列（最新创建的用户在前） 
+2. 微信OpenID和UnionID具有唯一性，不能重复
+3. 密码目前以明文存储，生产环境建议加密
+4. POST 接口用于创建用户，GET 接口用于分页查询用户
+5. 返回的用户信息不包含密码字段
+6. 分页查询默认每页10条，最大100条
+7. 分页查询按用户ID倒序排列（最新创建的用户在前）
+8. 系统会自动从请求头中获取微信用户信息（X-WX-OPENID、X-WX-UNIONID、X-WX-APPID）
+9. 支持资源复用场景，会自动获取X-WX-FROM-*字段 

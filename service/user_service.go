@@ -23,6 +23,9 @@ type UserRequest struct {
 type UserResponse struct {
 	Id       int32  `json:"id"`
 	Username string `json:"username"`
+	OpenId   string `json:"openid,omitempty"`
+	UnionId  string `json:"unionid,omitempty"`
+	AppId    string `json:"appid,omitempty"`
 }
 
 // UserListResponse 用户列表响应结构
@@ -87,7 +90,44 @@ func createUser(r *http.Request) (*UserResponse, error) {
 		return nil, fmt.Errorf("密码不能为空")
 	}
 
-	// 检查用户是否已存在
+	// 获取微信用户信息
+	openId := r.Header.Get("X-WX-OPENID")
+	unionId := r.Header.Get("X-WX-UNIONID")
+	appId := r.Header.Get("X-WX-APPID")
+
+	// 如果资源复用，使用FROM字段
+	if openId == "" {
+		openId = r.Header.Get("X-WX-FROM-OPENID")
+	}
+	if unionId == "" {
+		unionId = r.Header.Get("X-WX-FROM-UNIONID")
+	}
+	if appId == "" {
+		appId = r.Header.Get("X-WX-FROM-APPID")
+	}
+
+	// 检查用户是否已存在（优先检查微信信息）
+	if openId != "" {
+		existingUser, err := dao.UserImp.GetUserByOpenId(openId)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("查询用户失败: %v", err)
+		}
+		if existingUser != nil && existingUser.Id > 0 {
+			return nil, fmt.Errorf("该微信用户已存在")
+		}
+	}
+
+	if unionId != "" {
+		existingUser, err := dao.UserImp.GetUserByUnionId(unionId)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			return nil, fmt.Errorf("查询用户失败: %v", err)
+		}
+		if existingUser != nil && existingUser.Id > 0 {
+			return nil, fmt.Errorf("该微信用户已存在")
+		}
+	}
+
+	// 检查用户名是否已存在
 	existingUser, err := dao.UserImp.GetUserByUsername(userReq.Username)
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, fmt.Errorf("查询用户失败: %v", err)
@@ -101,6 +141,9 @@ func createUser(r *http.Request) (*UserResponse, error) {
 	user := &model.UserModel{
 		Username:  userReq.Username,
 		Password:  userReq.Password, // 注意：实际项目中应该对密码进行加密
+		OpenId:    openId,
+		UnionId:   unionId,
+		AppId:     appId,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -114,6 +157,9 @@ func createUser(r *http.Request) (*UserResponse, error) {
 	response := &UserResponse{
 		Id:       user.Id,
 		Username: user.Username,
+		OpenId:   user.OpenId,
+		UnionId:  user.UnionId,
+		AppId:    user.AppId,
 	}
 
 	return response, nil
@@ -159,6 +205,9 @@ func getUsersByPage(r *http.Request) (*UserListResponse, error) {
 		userResponses = append(userResponses, &UserResponse{
 			Id:       user.Id,
 			Username: user.Username,
+			OpenId:   user.OpenId,
+			UnionId:  user.UnionId,
+			AppId:    user.AppId,
 		})
 	}
 

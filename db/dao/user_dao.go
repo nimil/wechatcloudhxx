@@ -33,6 +33,28 @@ func (imp *UserInterfaceImp) GetUserById(id int32) (*model.UserModel, error) {
 	return user, err
 }
 
+// GetUserByOpenId 根据OpenId查询用户
+func (imp *UserInterfaceImp) GetUserByOpenId(openId string) (*model.UserModel, error) {
+	var err error
+	var user = new(model.UserModel)
+
+	cli := db.Get()
+	err = cli.Where("openid = ?", openId).First(user).Error
+
+	return user, err
+}
+
+// GetUserByUnionId 根据UnionId查询用户
+func (imp *UserInterfaceImp) GetUserByUnionId(unionId string) (*model.UserModel, error) {
+	var err error
+	var user = new(model.UserModel)
+
+	cli := db.Get()
+	err = cli.Where("unionid = ?", unionId).First(user).Error
+
+	return user, err
+}
+
 // GetUsersByPage 分页查询用户列表
 func (imp *UserInterfaceImp) GetUsersByPage(page, pageSize int) ([]*model.UserModel, int64, error) {
 	var users []*model.UserModel
