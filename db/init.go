@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"wxcloudrun-golang/db/model"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -50,6 +51,22 @@ func Init() error {
 
 	dbInstance = db
 
+	// 自动迁移数据库表
+	err = db.AutoMigrate(
+		&model.UserModel{},
+		&model.PostModel{},
+		&model.CommentModel{},
+		&model.CategoryModel{},
+		&model.UserLikeModel{},
+	)
+	if err != nil {
+		fmt.Println("AutoMigrate error,err=", err.Error())
+		return err
+	}
+
+	// 初始化默认分类数据
+	initDefaultCategories(db)
+
 	fmt.Println("finish init mysql with ", source)
 	return nil
 }
@@ -57,4 +74,81 @@ func Init() error {
 // Get ...
 func Get() *gorm.DB {
 	return dbInstance
+}
+
+// GetDB 获取数据库实例
+func GetDB() *gorm.DB {
+	return dbInstance
+}
+
+// initDefaultCategories 初始化默认分类数据
+func initDefaultCategories(db *gorm.DB) {
+	var count int64
+	db.Model(&model.CategoryModel{}).Count(&count)
+	if count > 0 {
+		return // 如果已有数据，不重复初始化
+	}
+
+	categories := []model.CategoryModel{
+		{
+			Id:          "cat_001",
+			Name:        "全部",
+			Code:        "all",
+			Icon:        "📋",
+			Description: "所有分类的帖子",
+			Sort:        0,
+		},
+		{
+			Id:          "cat_002",
+			Name:        "技术",
+			Code:        "tech",
+			Icon:        "💻",
+			Description: "技术分享、开发经验、编程技巧",
+			Sort:        1,
+		},
+		{
+			Id:          "cat_003",
+			Name:        "生活",
+			Code:        "life",
+			Icon:        "🏠",
+			Description: "日常生活、心情分享、生活感悟",
+			Sort:        2,
+		},
+		{
+			Id:          "cat_004",
+			Name:        "美食",
+			Code:        "food",
+			Icon:        "🍜",
+			Description: "美食制作、餐厅推荐、食谱分享",
+			Sort:        3,
+		},
+		{
+			Id:          "cat_005",
+			Name:        "旅行",
+			Code:        "travel",
+			Icon:        "✈️",
+			Description: "旅行攻略、景点推荐、游记分享",
+			Sort:        4,
+		},
+		{
+			Id:          "cat_006",
+			Name:        "读书",
+			Code:        "book",
+			Icon:        "📚",
+			Description: "书籍推荐、读书笔记、读后感",
+			Sort:        5,
+		},
+		{
+			Id:          "cat_007",
+			Name:        "运动",
+			Code:        "sport",
+			Icon:        "🏃",
+			Description: "运动健身、体育赛事、健康生活",
+			Sort:        6,
+		},
+	}
+
+	for _, category := range categories {
+		db.Create(&category)
+	}
 }
