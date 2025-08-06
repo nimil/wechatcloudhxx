@@ -20,9 +20,6 @@ func main() {
 	commentHandler := service.NewCommentHandler()
 	likeHandler := service.NewLikeHandler()
 
-	// 注册路由
-	http.HandleFunc("/", service.IndexHandler)
-
 	// 帖子相关接口
 	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {

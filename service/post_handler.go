@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 // PostHandler 帖子处理器
@@ -105,4 +104,4 @@ func (h *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	json.NewEncoder(w).Encode(response)
-} 
+}

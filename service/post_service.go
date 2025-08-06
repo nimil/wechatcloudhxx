@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"strings"
 	"time"
 	"wxcloudrun-golang/db/dao"
 	"wxcloudrun-golang/db/model"
@@ -89,8 +88,8 @@ type PostStats struct {
 
 // Pagination 分页信息
 type Pagination struct {
-	Current  int  `json:"current"`
-	PageSize int  `json:"pageSize"`
+	Current  int   `json:"current"`
+	PageSize int   `json:"pageSize"`
 	Total    int64 `json:"total"`
 	HasMore  bool  `json:"hasMore"`
 }
@@ -210,10 +209,10 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 		}
 
 		postDetail := &PostDetail{
-			Id:           post.Id,
-			Title:        post.Title,
-			Excerpt:      post.Excerpt,
-			Content:      post.Content,
+			Id:      post.Id,
+			Title:   post.Title,
+			Excerpt: post.Excerpt,
+			Content: post.Content,
 			Author: UserInfo{
 				Id:         author.Id,
 				Nickname:   author.Nickname,
@@ -253,4 +252,4 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 			HasMore:  hasMore,
 		},
 	}, nil
-} 
+}

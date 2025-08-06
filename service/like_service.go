@@ -34,7 +34,7 @@ type LikeResponse struct {
 // ToggleLike 切换点赞状态
 func (s *LikeService) ToggleLike(postId string, userId string, req *LikeRequest) (*LikeResponse, error) {
 	// 验证帖子是否存在
-	post, err := s.postDao.GetById(postId)
+	_, err := s.postDao.GetById(postId)
 	if err != nil {
 		return nil, fmt.Errorf("帖子不存在: %v", err)
 	}

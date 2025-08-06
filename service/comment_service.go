@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"time"
@@ -59,7 +58,7 @@ type CommentDetail struct {
 // CreateComment 创建评论
 func (s *CommentService) CreateComment(postId string, req *CreateCommentRequest, authorId string) (*CreateCommentResponse, error) {
 	// 验证帖子是否存在
-	post, err := s.postDao.GetById(postId)
+	_, err := s.postDao.GetById(postId)
 	if err != nil {
 		return nil, fmt.Errorf("帖子不存在: %v", err)
 	}
@@ -78,7 +77,7 @@ func (s *CommentService) CreateComment(postId string, req *CreateCommentRequest,
 
 	// 如果有父评论ID，验证父评论是否存在
 	if req.ParentId != "" {
-		parentComment, err := s.commentDao.GetById(req.ParentId)
+		_, err := s.commentDao.GetById(req.ParentId)
 		if err != nil {
 			return nil, fmt.Errorf("父评论不存在: %v", err)
 		}

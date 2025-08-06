@@ -4,18 +4,22 @@ import (
 	"wxcloudrun-golang/db/model"
 )
 
-// UserInterface 用户数据模型接口
-type UserInterface interface {
+// UserDao 用户数据访问接口
+type UserDao interface {
 	CreateUser(user *model.UserModel) error
 	GetUserByUsername(username string) (*model.UserModel, error)
-	GetUserById(id int32) (*model.UserModel, error)
+	GetById(id string) (*model.UserModel, error)
 	GetUserByOpenId(openId string) (*model.UserModel, error)
 	GetUserByUnionId(unionId string) (*model.UserModel, error)
 	GetUsersByPage(page, pageSize int) ([]*model.UserModel, int64, error)
+	UpdateUser(user *model.UserModel) error
+	DeleteUser(id string) error
 }
 
-// UserInterfaceImp 用户数据模型实现
-type UserInterfaceImp struct{}
+// UserDaoImpl 用户数据访问实现
+type UserDaoImpl struct{}
 
-// UserImp 用户实现实例
-var UserImp UserInterface = &UserInterfaceImp{}
+// NewUserDao 创建用户DAO实例
+func NewUserDao() UserDao {
+	return &UserDaoImpl{}
+}
