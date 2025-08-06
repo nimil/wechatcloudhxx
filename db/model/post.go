@@ -4,11 +4,11 @@ import "time"
 
 // PostModel 帖子模型
 type PostModel struct {
-	Id           string    `gorm:"column:id;primaryKey;type:varchar(50)" json:"id"`
+	Id           int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Title        string    `gorm:"column:title;type:varchar(100);not null" json:"title"`
 	Content      string    `gorm:"column:content;type:text;not null" json:"content"`
 	Excerpt      string    `gorm:"column:excerpt;type:varchar(500)" json:"excerpt"`
-	AuthorId     string    `gorm:"column:author_id;type:varchar(50);not null;index" json:"authorId"`
+	AuthorId     int64     `gorm:"column:author_id;not null;index" json:"authorId"`
 	Category     string    `gorm:"column:category;type:varchar(20);not null;index" json:"category"`
 	CategoryName string    `gorm:"column:category_name;type:varchar(50);not null" json:"categoryName"`
 	Tags         string    `gorm:"column:tags;type:text" json:"tags"` // JSON格式存储

@@ -4,7 +4,7 @@ import "time"
 
 // CategoryModel 分类模型
 type CategoryModel struct {
-	Id          string    `gorm:"column:id;primaryKey;type:varchar(50)" json:"id"`
+	Id          int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name        string    `gorm:"column:name;type:varchar(50);not null" json:"name"`
 	Code        string    `gorm:"column:code;type:varchar(20);not null;uniqueIndex" json:"code"`
 	Icon        string    `gorm:"column:icon;type:varchar(20)" json:"icon"`

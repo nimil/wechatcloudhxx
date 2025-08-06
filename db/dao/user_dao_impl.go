@@ -21,7 +21,7 @@ func (dao *UserDaoImpl) GetUserByUsername(username string) (*model.UserModel, er
 }
 
 // GetById 根据ID查询用户
-func (dao *UserDaoImpl) GetById(id string) (*model.UserModel, error) {
+func (dao *UserDaoImpl) GetById(id int64) (*model.UserModel, error) {
 	var user model.UserModel
 	err := db.GetDB().Where("id = ?", id).First(&user).Error
 	if err != nil {
@@ -77,6 +77,6 @@ func (dao *UserDaoImpl) UpdateUser(user *model.UserModel) error {
 }
 
 // DeleteUser 删除用户
-func (dao *UserDaoImpl) DeleteUser(id string) error {
+func (dao *UserDaoImpl) DeleteUser(id int64) error {
 	return db.GetDB().Where("id = ?", id).Delete(&model.UserModel{}).Error
 } 

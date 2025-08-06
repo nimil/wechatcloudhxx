@@ -39,7 +39,7 @@ type CreatePostRequest struct {
 
 // CreatePostResponse 创建帖子响应
 type CreatePostResponse struct {
-	PostId    string    `json:"postId"`
+	PostId    int64     `json:"postId"`
 	CreatedAt time.Time `json:"createdAt"`
 	URL       string    `json:"url"`
 }
@@ -52,7 +52,7 @@ type PostListResponse struct {
 
 // PostDetail 帖子详情
 type PostDetail struct {
-	Id           string    `json:"id"`
+	Id           int64     `json:"id"`
 	Title        string    `json:"title"`
 	Excerpt      string    `json:"excerpt"`
 	Content      string    `json:"content"`
@@ -70,7 +70,7 @@ type PostDetail struct {
 
 // UserInfo 用户信息
 type UserInfo struct {
-	Id         string `json:"id"`
+	Id         int64  `json:"id"`
 	Nickname   string `json:"nickname"`
 	Avatar     string `json:"avatar"`
 	Bio        string `json:"bio"`
@@ -95,15 +95,12 @@ type Pagination struct {
 }
 
 // CreatePost 创建帖子
-func (s *PostService) CreatePost(req *CreatePostRequest, authorId string) (*CreatePostResponse, error) {
+func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64) (*CreatePostResponse, error) {
 	// 验证分类是否存在
 	category, err := s.categoryDao.GetByCode(req.Category)
 	if err != nil {
 		return nil, fmt.Errorf("分类不存在: %v", err)
 	}
-
-	// 生成帖子ID
-	postId := fmt.Sprintf("post_%d", time.Now().UnixNano())
 
 	// 处理标签和图片
 	tagsJSON, _ := json.Marshal(req.Tags)
@@ -117,7 +114,6 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId string) (*Crea
 
 	// 创建帖子
 	post := &model.PostModel{
-		Id:           postId,
 		Title:        req.Title,
 		Content:      req.Content,
 		Excerpt:      excerpt,
@@ -142,14 +138,14 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId string) (*Crea
 	}
 
 	return &CreatePostResponse{
-		PostId:    postId,
+		PostId:    post.Id,
 		CreatedAt: post.CreatedAt,
-		URL:       fmt.Sprintf("https://api.example.com/posts/%s", postId),
+		URL:       fmt.Sprintf("https://api.example.com/posts/%d", post.Id),
 	}, nil
 }
 
 // GetPostList 获取帖子列表
-func (s *PostService) GetPostList(page, pageSize int, category, sort string, userId string) (*PostListResponse, error) {
+func (s *PostService) GetPostList(page, pageSize int, category, sort string, userId int64) (*PostListResponse, error) {
 	// 参数验证
 	if page < 1 {
 		page = 1
@@ -165,8 +161,8 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 	}
 
 	// 获取用户点赞的帖子ID列表
-	var likedPostIds []string
-	if userId != "" {
+	var likedPostIds []int64
+	if userId != 0 {
 		likedPostIds, err = s.userLikeDao.GetUserLikedPostIds(userId)
 		if err != nil {
 			// 记录错误但不影响主流程
@@ -199,7 +195,7 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 
 		// 检查是否点赞
 		isLiked := false
-		if userId != "" {
+		if userId != 0 {
 			for _, likedId := range likedPostIds {
 				if likedId == post.Id {
 					isLiked = true

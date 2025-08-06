@@ -91,7 +91,7 @@ func initDefaultCategories(db *gorm.DB) {
 
 	categories := []model.CategoryModel{
 		{
-			Id:          "cat_001",
+			Id:          1,
 			Name:        "全部",
 			Code:        "all",
 			Icon:        "📋",
@@ -99,7 +99,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        0,
 		},
 		{
-			Id:          "cat_002",
+			Id:          2,
 			Name:        "技术",
 			Code:        "tech",
 			Icon:        "💻",
@@ -107,7 +107,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        1,
 		},
 		{
-			Id:          "cat_003",
+			Id:          3,
 			Name:        "生活",
 			Code:        "life",
 			Icon:        "🏠",
@@ -115,7 +115,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        2,
 		},
 		{
-			Id:          "cat_004",
+			Id:          4,
 			Name:        "美食",
 			Code:        "food",
 			Icon:        "🍜",
@@ -123,7 +123,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        3,
 		},
 		{
-			Id:          "cat_005",
+			Id:          5,
 			Name:        "旅行",
 			Code:        "travel",
 			Icon:        "✈️",
@@ -131,7 +131,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        4,
 		},
 		{
-			Id:          "cat_006",
+			Id:          6,
 			Name:        "读书",
 			Code:        "book",
 			Icon:        "📚",
@@ -139,7 +139,7 @@ func initDefaultCategories(db *gorm.DB) {
 			Sort:        5,
 		},
 		{
-			Id:          "cat_007",
+			Id:          7,
 			Name:        "运动",
 			Code:        "sport",
 			Icon:        "🏃",

@@ -10,7 +10,7 @@ type PostDao interface {
 	Create(post *model.PostModel) error
 	
 	// 根据ID获取帖子
-	GetById(id string) (*model.PostModel, error)
+	GetById(id int64) (*model.PostModel, error)
 	
 	// 获取帖子列表
 	GetList(page, pageSize int, category, sort string) ([]*model.PostModel, int64, error)
@@ -19,20 +19,20 @@ type PostDao interface {
 	Update(post *model.PostModel) error
 	
 	// 删除帖子
-	Delete(id string) error
+	Delete(id int64) error
 	
 	// 增加浏览量
-	IncrementViews(id string) error
+	IncrementViews(id int64) error
 	
 	// 增加点赞数
-	IncrementLikes(id string) error
+	IncrementLikes(id int64) error
 	
 	// 减少点赞数
-	DecrementLikes(id string) error
+	DecrementLikes(id int64) error
 	
 	// 增加评论数
-	IncrementComments(id string) error
+	IncrementComments(id int64) error
 	
 	// 减少评论数
-	DecrementComments(id string) error
+	DecrementComments(id int64) error
 } 

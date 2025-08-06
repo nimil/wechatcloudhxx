@@ -45,7 +45,13 @@ func (h *PostHandler) GetPostListHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
+	userIdStr := r.Header.Get("X-User-Id")
+	var userId int64
+	if userIdStr != "" {
+		if id, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
+			userId = id
+		}
+	}
 
 	// 调用服务
 	result, err := h.postService.GetPostList(page, pageSize, category, sort, userId)
@@ -83,9 +89,15 @@ func (h *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
-	if userId == "" {
+	userIdStr := r.Header.Get("X-User-Id")
+	if userIdStr == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 

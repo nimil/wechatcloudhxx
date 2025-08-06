@@ -10,11 +10,11 @@ type UserLikeDao interface {
 	Create(userLike *model.UserLikeModel) error
 	
 	// 删除点赞记录
-	Delete(userId, postId string) error
+	Delete(userId, postId int64) error
 	
 	// 检查用户是否点赞
-	IsLiked(userId, postId string) (bool, error)
+	IsLiked(userId, postId int64) (bool, error)
 	
 	// 获取用户点赞的帖子ID列表
-	GetUserLikedPostIds(userId string) ([]string, error)
+	GetUserLikedPostIds(userId int64) ([]int64, error)
 } 

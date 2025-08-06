@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -35,7 +36,12 @@ func (h *LikeHandler) ToggleLikeHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
-	postId := pathParts[3]
+	postIdStr := pathParts[3]
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
 
 	// 解析请求体
 	var req LikeRequest
@@ -45,9 +51,15 @@ func (h *LikeHandler) ToggleLikeHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
-	if userId == "" {
+	userIdStr := r.Header.Get("X-User-Id")
+	if userIdStr == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 

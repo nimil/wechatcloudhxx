@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 )
 
 // CategoryHandler 分类处理器
@@ -67,7 +68,13 @@ func (h *CategoryHandler) GetHotTopicsHandler(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
+	userIdStr := r.Header.Get("X-User-Id")
+	var userId int64
+	if userIdStr != "" {
+		if id, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
+			userId = id
+		}
+	}
 
 	// 调用服务
 	result, err := h.categoryService.GetHotTopics(userId)

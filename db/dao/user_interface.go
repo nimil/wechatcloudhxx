@@ -8,12 +8,12 @@ import (
 type UserDao interface {
 	CreateUser(user *model.UserModel) error
 	GetUserByUsername(username string) (*model.UserModel, error)
-	GetById(id string) (*model.UserModel, error)
+	GetById(id int64) (*model.UserModel, error)
 	GetUserByOpenId(openId string) (*model.UserModel, error)
 	GetUserByUnionId(unionId string) (*model.UserModel, error)
 	GetUsersByPage(page, pageSize int) ([]*model.UserModel, int64, error)
 	UpdateUser(user *model.UserModel) error
-	DeleteUser(id string) error
+	DeleteUser(id int64) error
 }
 
 // UserDaoImpl 用户数据访问实现

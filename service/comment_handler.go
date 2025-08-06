@@ -36,7 +36,12 @@ func (h *CommentHandler) CreateCommentHandler(w http.ResponseWriter, r *http.Req
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
-	postId := pathParts[3]
+	postIdStr := pathParts[3]
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
 
 	// 解析请求体
 	var req CreateCommentRequest
@@ -46,9 +51,15 @@ func (h *CommentHandler) CreateCommentHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
-	if userId == "" {
+	userIdStr := r.Header.Get("X-User-Id")
+	if userIdStr == "" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	userId, err := strconv.ParseInt(userIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid user ID", http.StatusBadRequest)
 		return
 	}
 
@@ -80,7 +91,12 @@ func (h *CommentHandler) GetCommentListHandler(w http.ResponseWriter, r *http.Re
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
-	postId := pathParts[3]
+	postIdStr := pathParts[3]
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
 
 	// 获取查询参数
 	pageStr := r.URL.Query().Get("page")
@@ -102,7 +118,13 @@ func (h *CommentHandler) GetCommentListHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userId := r.Header.Get("X-User-Id")
+	userIdStr := r.Header.Get("X-User-Id")
+	var userId int64
+	if userIdStr != "" {
+		if id, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
+			userId = id
+		}
+	}
 
 	// 调用服务
 	result, err := h.commentService.GetCommentList(postId, page, pageSize, userId)

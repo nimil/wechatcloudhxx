@@ -22,7 +22,7 @@ func (dao *PostDaoImpl) Create(post *model.PostModel) error {
 }
 
 // GetById 根据ID获取帖子
-func (dao *PostDaoImpl) GetById(id string) (*model.PostModel, error) {
+func (dao *PostDaoImpl) GetById(id int64) (*model.PostModel, error) {
 	var post model.PostModel
 	err := dao.db.Where("id = ?", id).First(&post).Error
 	if err != nil {
@@ -75,31 +75,31 @@ func (dao *PostDaoImpl) Update(post *model.PostModel) error {
 }
 
 // Delete 删除帖子
-func (dao *PostDaoImpl) Delete(id string) error {
+func (dao *PostDaoImpl) Delete(id int64) error {
 	return dao.db.Where("id = ?", id).Delete(&model.PostModel{}).Error
 }
 
 // IncrementViews 增加浏览量
-func (dao *PostDaoImpl) IncrementViews(id string) error {
+func (dao *PostDaoImpl) IncrementViews(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("views", gorm.Expr("views + ?", 1)).Error
 }
 
 // IncrementLikes 增加点赞数
-func (dao *PostDaoImpl) IncrementLikes(id string) error {
+func (dao *PostDaoImpl) IncrementLikes(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("likes", gorm.Expr("likes + ?", 1)).Error
 }
 
 // DecrementLikes 减少点赞数
-func (dao *PostDaoImpl) DecrementLikes(id string) error {
+func (dao *PostDaoImpl) DecrementLikes(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("likes", gorm.Expr("likes - ?", 1)).Error
 }
 
 // IncrementComments 增加评论数
-func (dao *PostDaoImpl) IncrementComments(id string) error {
+func (dao *PostDaoImpl) IncrementComments(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("comments", gorm.Expr("comments + ?", 1)).Error
 }
 
 // DecrementComments 减少评论数
-func (dao *PostDaoImpl) DecrementComments(id string) error {
+func (dao *PostDaoImpl) DecrementComments(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("comments", gorm.Expr("comments - ?", 1)).Error
 } 

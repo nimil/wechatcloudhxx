@@ -18,7 +18,7 @@ func NewCategoryService() *CategoryService {
 
 // CategoryInfo 分类信息
 type CategoryInfo struct {
-	Id          string `json:"id"`
+	Id          int64  `json:"id"`
 	Name        string `json:"name"`
 	Code        string `json:"code"`
 	Icon        string `json:"icon"`
@@ -28,7 +28,7 @@ type CategoryInfo struct {
 
 // TopicInfo 话题信息
 type TopicInfo struct {
-	Id          string `json:"id"`
+	Id          int64  `json:"id"`
 	Name        string `json:"name"`
 	Icon        string `json:"icon"`
 	Code        string `json:"code"`
@@ -84,7 +84,7 @@ func (s *CategoryService) GetPublishCategories() ([]*CategoryInfo, error) {
 }
 
 // GetHotTopics 获取热门话题
-func (s *CategoryService) GetHotTopics(userId string) ([]*TopicInfo, error) {
+func (s *CategoryService) GetHotTopics(userId int64) ([]*TopicInfo, error) {
 	categories, err := s.categoryDao.GetAll()
 	if err != nil {
 		return nil, err

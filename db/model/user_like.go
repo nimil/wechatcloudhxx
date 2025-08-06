@@ -4,9 +4,9 @@ import "time"
 
 // UserLikeModel 用户点赞关系模型
 type UserLikeModel struct {
-	Id        int       `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	UserId    string    `gorm:"column:user_id;type:varchar(50);not null;index" json:"userId"`
-	PostId    string    `gorm:"column:post_id;type:varchar(50);not null;index" json:"postId"`
+	Id        int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
+	UserId    int64     `gorm:"column:user_id;not null;index" json:"userId"`
+	PostId    int64     `gorm:"column:post_id;not null;index" json:"postId"`
 	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime" json:"createdAt"`
 }
 

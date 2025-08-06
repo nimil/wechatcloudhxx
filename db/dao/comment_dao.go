@@ -10,20 +10,20 @@ type CommentDao interface {
 	Create(comment *model.CommentModel) error
 	
 	// 根据ID获取评论
-	GetById(id string) (*model.CommentModel, error)
+	GetById(id int64) (*model.CommentModel, error)
 	
 	// 获取帖子评论列表
-	GetByPostId(postId string, page, pageSize int) ([]*model.CommentModel, int64, error)
+	GetByPostId(postId int64, page, pageSize int) ([]*model.CommentModel, int64, error)
 	
 	// 更新评论
 	Update(comment *model.CommentModel) error
 	
 	// 删除评论
-	Delete(id string) error
+	Delete(id int64) error
 	
 	// 增加点赞数
-	IncrementLikes(id string) error
+	IncrementLikes(id int64) error
 	
 	// 减少点赞数
-	DecrementLikes(id string) error
+	DecrementLikes(id int64) error
 } 
