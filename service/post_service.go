@@ -11,20 +11,20 @@ import (
 
 // PostService 帖子服务
 type PostService struct {
-	postDao     dao.PostDao
-	userDao     dao.UserDao
-	categoryDao dao.CategoryDao
-	userLikeDao dao.UserLikeDao
+	postDao         dao.PostDao
+	userDao         dao.UserDao
+	categoryDao     dao.CategoryDao
+	userLikeDao     dao.UserLikeDao
 	securityService *ContentSecurityService
 }
 
 // NewPostService 创建帖子服务实例
 func NewPostService() *PostService {
 	return &PostService{
-		postDao:     dao.NewPostDao(),
-		userDao:     dao.NewUserDao(),
-		categoryDao: dao.NewCategoryDao(),
-		userLikeDao: dao.NewUserLikeDao(),
+		postDao:         dao.NewPostDao(),
+		userDao:         dao.NewUserDao(),
+		categoryDao:     dao.NewCategoryDao(),
+		userLikeDao:     dao.NewUserLikeDao(),
 		securityService: NewContentSecurityService(),
 	}
 }
@@ -167,7 +167,6 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64, openid 
 	return &CreatePostResponse{
 		PostId:    post.Id,
 		CreatedAt: post.CreatedAt,
-		URL:       fmt.Sprintf("https://api.example.com/posts/%d", post.Id),
 	}, nil
 }
 

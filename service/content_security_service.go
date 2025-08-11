@@ -117,7 +117,7 @@ func (s *ContentSecurityService) CheckContentSecurity(openid, content string, sc
 	if err != nil {
 		return nil, fmt.Errorf("读取响应内容失败: %v", err)
 	}
-	fmt.Printf("%s", body)
+	fmt.Printf("当前检测内容为:%s 当前检测结果为%s", requestData, body)
 
 	// 解析响应
 	var response MsgSecCheckResponse
