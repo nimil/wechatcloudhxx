@@ -80,6 +80,22 @@ type MsgSecCheckResponse struct {
 	Detail []MsgSecCheckDetail `json:"detail,omitempty"`
 }
 
+// MediaCheckRequest 图片/音频内容安全检测请求
+type MediaCheckRequest struct {
+	MediaURL  string `json:"media_url"`
+	MediaType int    `json:"media_type"` // 1:音频;2:图片
+	Version   int    `json:"version"`    // 接口版本号，2.0版本为固定值2
+	Scene     int    `json:"scene"`      // 场景枚举值（1 资料；2 评论；3 论坛；4 社交日志）
+	Openid    string `json:"openid"`     // 用户的openid（用户需在近两小时访问过小程序）
+}
+
+// MediaCheckResponse 图片/音频内容安全检测响应
+type MediaCheckResponse struct {
+	Errcode int    `json:"errcode"`  // 错误码
+	Errmsg  string `json:"errmsg"`   // 错误信息
+	TraceId string `json:"trace_id"` // 唯一请求标识，标记单次请求，用于匹配异步推送结果
+}
+
 // CheckContentSecurity 检查内容安全性
 func (s *ContentSecurityService) CheckContentSecurity(openid, content string, scene int) (*MsgSecCheckResponse, error) {
 	// 构建请求数据
@@ -128,6 +144,140 @@ func (s *ContentSecurityService) CheckContentSecurity(openid, content string, sc
 	return &response, nil
 }
 
+// CheckImageSecurity 检查图片内容安全性（云调用版本）
+func (s *ContentSecurityService) CheckImageSecurity(mediaURL, openid string, scene int) (*MediaCheckResponse, error) {
+	// 构建请求数据
+	requestData := MediaCheckRequest{
+		MediaURL:  mediaURL,
+		MediaType: 2, // 2表示图片
+		Version:   2, // 2.0版本
+		Scene:     scene,
+		Openid:    openid,
+	}
+
+	// 序列化请求数据
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求数据失败: %v", err)
+	}
+
+	// 云调用直接使用微信API
+	url := "http://api.weixin.qq.com/wxa/media_check_async"
+
+	// 创建HTTP请求
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建HTTP请求失败: %v", err)
+	}
+
+	// 设置请求头
+	req.Header.Set("Content-Type", "application/json")
+
+	// 发送请求
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("发送请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// 读取响应内容
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取响应内容失败: %v", err)
+	}
+
+	// 打印详细的请求和响应日志
+	fmt.Printf("=== 图片内容检测请求详情 ===\n")
+	fmt.Printf("请求URL: %s\n", url)
+	fmt.Printf("请求方法: POST\n")
+	fmt.Printf("请求头: Content-Type: application/json\n")
+	fmt.Printf("请求参数:\n")
+	fmt.Printf("  - media_url: %s\n", requestData.MediaURL)
+	fmt.Printf("  - media_type: %d (图片)\n", requestData.MediaType)
+	fmt.Printf("  - version: %d\n", requestData.Version)
+	fmt.Printf("  - scene: %d (论坛场景)\n", requestData.Scene)
+	fmt.Printf("  - openid: %s\n", requestData.Openid)
+	fmt.Printf("请求体JSON: %s\n", string(jsonData))
+	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+	fmt.Printf("响应体: %s\n", string(body))
+	fmt.Printf("=== 图片内容检测请求详情结束 ===\n")
+
+	// 解析响应
+	var response MediaCheckResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	return &response, nil
+}
+
+// CheckAudioSecurity 检查音频内容安全性（云调用版本）
+func (s *ContentSecurityService) CheckAudioSecurity(mediaURL, openid string, scene int) (*MediaCheckResponse, error) {
+	// 构建请求数据
+	requestData := MediaCheckRequest{
+		MediaURL:  mediaURL,
+		MediaType: 1, // 1表示音频
+		Version:   2, // 2.0版本
+		Scene:     scene,
+		Openid:    openid,
+	}
+
+	// 序列化请求数据
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, fmt.Errorf("序列化请求数据失败: %v", err)
+	}
+
+	// 云调用直接使用微信API
+	url := "http://api.weixin.qq.com/wxa/media_check_async"
+
+	// 创建HTTP请求
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, fmt.Errorf("创建HTTP请求失败: %v", err)
+	}
+
+	// 设置请求头
+	req.Header.Set("Content-Type", "application/json")
+
+	// 发送请求
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("发送请求失败: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// 读取响应内容
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("读取响应内容失败: %v", err)
+	}
+
+	// 打印详细的请求和响应日志
+	fmt.Printf("=== 音频内容检测请求详情 ===\n")
+	fmt.Printf("请求URL: %s\n", url)
+	fmt.Printf("请求方法: POST\n")
+	fmt.Printf("请求头: Content-Type: application/json\n")
+	fmt.Printf("请求参数:\n")
+	fmt.Printf("  - media_url: %s\n", requestData.MediaURL)
+	fmt.Printf("  - media_type: %d (音频)\n", requestData.MediaType)
+	fmt.Printf("  - version: %d\n", requestData.Version)
+	fmt.Printf("  - scene: %d (论坛场景)\n", requestData.Scene)
+	fmt.Printf("  - openid: %s\n", requestData.Openid)
+	fmt.Printf("请求体JSON: %s\n", string(jsonData))
+	fmt.Printf("响应状态码: %d\n", resp.StatusCode)
+	fmt.Printf("响应体: %s\n", string(body))
+	fmt.Printf("=== 音频内容检测请求详情结束 ===\n")
+
+	// 解析响应
+	var response MediaCheckResponse
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, fmt.Errorf("解析响应失败: %v", err)
+	}
+
+	return &response, nil
+}
+
 // IsContentSafe 判断内容是否安全
 func (s *ContentSecurityService) IsContentSafe(openid, content string, scene int) (bool, error) {
 	response, err := s.CheckContentSecurity(openid, content, scene)
@@ -148,6 +298,19 @@ func (s *ContentSecurityService) IsContentSafe(openid, content string, scene int
 		openid, scene, response.Result.Suggest, response.Result.Label, isSafe)
 
 	return isSafe, nil
+}
+
+// IsMediaCheckSuccess 判断媒体内容检测是否成功发起
+func (s *ContentSecurityService) IsMediaCheckSuccess(response *MediaCheckResponse) bool {
+	return response.Errcode == 0
+}
+
+// GetMediaCheckError 获取媒体内容检测错误信息
+func (s *ContentSecurityService) GetMediaCheckError(response *MediaCheckResponse) string {
+	if response.Errcode == 0 {
+		return ""
+	}
+	return fmt.Sprintf("错误码: %d, 错误信息: %s", response.Errcode, response.Errmsg)
 }
 
 // GetContentSecurityResult 获取内容安全检测详细结果

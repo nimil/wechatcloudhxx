@@ -15,6 +15,7 @@ type PostService struct {
 	userDao         dao.UserDao
 	categoryDao     dao.CategoryDao
 	userLikeDao     dao.UserLikeDao
+	imageCheckDao   dao.ImageCheckDao
 	securityService *ContentSecurityService
 }
 
@@ -25,6 +26,7 @@ func NewPostService() *PostService {
 		userDao:         dao.NewUserDao(),
 		categoryDao:     dao.NewCategoryDao(),
 		userLikeDao:     dao.NewUserLikeDao(),
+		imageCheckDao:   dao.NewImageCheckDao(),
 		securityService: NewContentSecurityService(),
 	}
 }
@@ -127,6 +129,7 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64, openid 
 				return nil, fmt.Errorf("内容包含违规信息，请修改后重试")
 			}
 		}
+
 	}
 
 	// 处理标签和图片
@@ -141,15 +144,80 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64, openid 
 
 	// 创建帖子
 	post := &model.PostModel{
-		Title:        req.Title,
-		Content:      req.Content,
-		Excerpt:      excerpt,
-		AuthorId:     authorId,
-		Category:     req.Category,
-		CategoryName: category.Name,
-		Tags:         string(tagsJSON),
-		Images:       string(imagesJSON),
-		IsPublic:     req.IsPublic,
+		Title:            req.Title,
+		Content:          req.Content,
+		Excerpt:          excerpt,
+		AuthorId:         authorId,
+		Category:         req.Category,
+		CategoryName:     category.Name,
+		Tags:             string(tagsJSON),
+		Images:           string(imagesJSON),
+		ImageCheckStatus: 0, // 初始状态：待检测
+		IsPublic:         req.IsPublic,
+	}
+
+	// 检查图片安全性（使用论坛场景）
+	if len(req.Images) > 0 {
+		// 先创建帖子，获取帖子ID
+		err = s.postDao.Create(post)
+		if err != nil {
+			return nil, fmt.Errorf("创建帖子失败: %v", err)
+		}
+
+		// 设置帖子状态为检测中
+		post.ImageCheckStatus = 1 // 检测中
+		err = s.postDao.Update(post)
+		if err != nil {
+			return nil, fmt.Errorf("更新帖子状态失败: %v", err)
+		}
+
+		// 检测每张图片
+		fmt.Printf("=== 开始检测帖子图片 - PostId: %d ===\n", post.Id)
+		fmt.Printf("需要检测 %d 张图片\n", len(req.Images))
+		
+		for i, imageURL := range req.Images {
+			if imageURL != "" {
+				fmt.Printf("检测图片 %d: %s\n", i+1, imageURL)
+				
+				// 异步检测图片内容
+				result, err := s.securityService.CheckImageSecurity(imageURL, openid, SceneForum)
+				if err != nil {
+					fmt.Printf("❌ 图片%d检测失败: %v\n", i+1, err)
+					return nil, fmt.Errorf("图片安全检测失败: %v", err)
+				}
+				
+				// 检查检测请求是否成功提交
+				if !s.securityService.IsMediaCheckSuccess(result) {
+					errorMsg := s.securityService.GetMediaCheckError(result)
+					fmt.Printf("❌ 图片%d检测请求失败: %s\n", i+1, errorMsg)
+					return nil, fmt.Errorf("图片安全检测请求失败: %s", errorMsg)
+				}
+				
+				// 记录检测请求到数据库
+				imageCheck := &model.ImageCheckModel{
+					PostId:   post.Id,
+					ImageURL: imageURL,
+					TraceId:  result.TraceId,
+					Status:   model.ImageCheckStatusChecking, // 检测中
+				}
+				
+				err = s.imageCheckDao.Create(imageCheck)
+				if err != nil {
+					fmt.Printf("❌ 记录图片%d检测信息失败: %v\n", i+1, err)
+					return nil, fmt.Errorf("记录图片检测信息失败: %v", err)
+				}
+				
+				fmt.Printf("✅ 图片%d检测请求已提交，追踪ID: %s\n", i+1, result.TraceId)
+			}
+		}
+		
+		fmt.Printf("=== 图片检测请求提交完成 ===\n")
+
+		// 返回帖子信息，但状态为检测中
+		return &CreatePostResponse{
+			PostId:    post.Id,
+			CreatedAt: post.CreatedAt,
+		}, nil
 	}
 
 	err = s.postDao.Create(post)
@@ -283,8 +351,8 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 		pageSize = 10
 	}
 
-	// 获取帖子列表
-	posts, total, err := s.postDao.GetList(page, pageSize, category, sort)
+	// 获取帖子列表（只显示图片检测通过的帖子）
+	posts, total, err := s.postDao.GetListWithImageCheck(page, pageSize, category, sort)
 	if err != nil {
 		return nil, fmt.Errorf("获取帖子列表失败: %v", err)
 	}

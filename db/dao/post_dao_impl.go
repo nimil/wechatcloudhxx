@@ -69,6 +69,46 @@ func (dao *PostDaoImpl) GetList(page, pageSize int, category, sort string) ([]*m
 	return posts, total, nil
 }
 
+// GetListWithImageCheck 获取图片检测通过的帖子列表
+func (dao *PostDaoImpl) GetListWithImageCheck(page, pageSize int, category, sort string) ([]*model.PostModel, int64, error) {
+	var posts []*model.PostModel
+	var total int64
+	
+	// 只显示图片检测通过的帖子（状态为2）或没有图片的帖子（状态为0）
+	query := dao.db.Model(&model.PostModel{}).Where("is_public = ? AND is_deleted = ? AND (image_check_status = ? OR image_check_status = ?)", 
+		true, false, 0, 2)
+	
+	// 分类筛选
+	if category != "" && category != "all" {
+		query = query.Where("category = ?", category)
+	}
+	
+	// 获取总数
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	// 排序
+	switch sort {
+	case "hot":
+		query = query.Order("likes DESC, views DESC, created_at DESC")
+	case "recommend":
+		query = query.Order("likes DESC, comments DESC, created_at DESC")
+	default: // latest
+		query = query.Order("created_at DESC")
+	}
+	
+	// 分页
+	offset := (page - 1) * pageSize
+	err = query.Offset(offset).Limit(pageSize).Find(&posts).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	return posts, total, nil
+}
+
 // Update 更新帖子
 func (dao *PostDaoImpl) Update(post *model.PostModel) error {
 	return dao.db.Save(post).Error
@@ -112,4 +152,9 @@ func (dao *PostDaoImpl) IncrementComments(id int64) error {
 // DecrementComments 减少评论数
 func (dao *PostDaoImpl) DecrementComments(id int64) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).UpdateColumn("comments", gorm.Expr("comments - ?", 1)).Error
+}
+
+// UpdateImageCheckStatus 更新图片检测状态
+func (dao *PostDaoImpl) UpdateImageCheckStatus(id int64, status int) error {
+	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).Update("image_check_status", status).Error
 } 

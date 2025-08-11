@@ -15,6 +15,9 @@ type PostDao interface {
 	// 获取帖子列表
 	GetList(page, pageSize int, category, sort string) ([]*model.PostModel, int64, error)
 	
+	// 获取图片检测通过的帖子列表
+	GetListWithImageCheck(page, pageSize int, category, sort string) ([]*model.PostModel, int64, error)
+	
 	// 更新帖子
 	Update(post *model.PostModel) error
 	
@@ -41,4 +44,7 @@ type PostDao interface {
 	
 	// 减少评论数
 	DecrementComments(id int64) error
+	
+	// 更新图片检测状态
+	UpdateImageCheckStatus(id int64, status int) error
 } 

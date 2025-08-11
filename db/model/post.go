@@ -13,6 +13,7 @@ type PostModel struct {
 	CategoryName string    `gorm:"column:category_name;type:varchar(50);not null" json:"categoryName"`
 	Tags         string    `gorm:"column:tags;type:text" json:"tags"` // JSON格式存储
 	Images       string    `gorm:"column:images;type:text" json:"images"` // JSON格式存储
+	ImageCheckStatus int    `gorm:"column:image_check_status;default:0" json:"imageCheckStatus"` // 图片检测状态：0-待检测 1-检测中 2-检测通过 3-检测失败
 	IsPublic     bool      `gorm:"column:is_public;default:true" json:"isPublic"`
 	IsDeleted    bool      `gorm:"column:is_deleted;default:false;index" json:"isDeleted"`
 	Likes        int       `gorm:"column:likes;default:0" json:"likes"`

@@ -75,7 +75,9 @@ func main() {
 	// 用户相关接口
 	http.HandleFunc("/api/user/", service.UserMiddleware(userHandler.HandleUserRequests))
 
-
+	// 微信回调接口（不需要用户中间件）
+	wechatCallbackHandler := service.NewWechatCallbackHandler()
+	http.HandleFunc("/api/wechat/callback", wechatCallbackHandler.HandleMediaCheckCallback)
 
 	log.Fatal(http.ListenAndServe(":80", nil))
 }
