@@ -55,10 +55,10 @@ func (h *WechatCallbackHandler) HandleMediaCheckCallback(w http.ResponseWriter, 
 	w.Header().Set("Content-Type", "application/json")
 
 	// 只允许POST请求
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
+	//if r.Method != "POST" {
+	//	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	//	return
+	//}
 
 	// 读取请求体
 	body, err := io.ReadAll(r.Body)
@@ -137,7 +137,7 @@ func (h *WechatCallbackHandler) processMediaCheckResult(callback *WechatMediaChe
 	fmt.Printf("  - Errmsg: %s\n", callback.Errmsg)
 	fmt.Printf("  - Result.Suggest: %s\n", callback.Result.Suggest)
 	fmt.Printf("  - Result.Label: %d\n", callback.Result.Label)
-	
+
 	if len(callback.Detail) > 0 {
 		fmt.Printf("  - Detail数组:\n")
 		for i, detail := range callback.Detail {
@@ -156,7 +156,7 @@ func (h *WechatCallbackHandler) processMediaCheckResult(callback *WechatMediaChe
 		fmt.Printf("❌ 未找到对应的检测记录: %v\n", err)
 		return fmt.Errorf("未找到对应的检测记录: %v", err)
 	}
-	fmt.Printf("✅ 找到检测记录 - PostId: %d, ImageURL: %s, Status: %d\n", 
+	fmt.Printf("✅ 找到检测记录 - PostId: %d, ImageURL: %s, Status: %d\n",
 		imageCheck.PostId, imageCheck.ImageURL, imageCheck.Status)
 
 	// 确定检测状态和建议
@@ -209,7 +209,7 @@ func (h *WechatCallbackHandler) processMediaCheckResult(callback *WechatMediaChe
 	fmt.Printf("  - Strategy: %s\n", strategy)
 	fmt.Printf("  - Errcode: %d\n", callback.Errcode)
 	fmt.Printf("  - Errmsg: %s\n", callback.Errmsg)
-	
+
 	err = h.imageCheckDao.UpdateStatus(
 		callback.TraceId,
 		status,
@@ -241,7 +241,7 @@ func (h *WechatCallbackHandler) processMediaCheckResult(callback *WechatMediaChe
 // checkPostImageCheckStatus 检查帖子的所有图片检测状态
 func (h *WechatCallbackHandler) checkPostImageCheckStatus(postId int64) error {
 	fmt.Printf("=== 检查帖子图片检测状态 - PostId: %d ===\n", postId)
-	
+
 	// 获取帖子的所有图片检测记录
 	imageChecks, err := h.imageCheckDao.GetByPostId(postId)
 	if err != nil {
@@ -250,7 +250,7 @@ func (h *WechatCallbackHandler) checkPostImageCheckStatus(postId int64) error {
 	}
 
 	fmt.Printf("帖子共有 %d 张图片需要检测\n", len(imageChecks))
-	
+
 	if len(imageChecks) == 0 {
 		fmt.Printf("没有图片，无需处理\n")
 		return nil // 没有图片，无需处理
@@ -273,10 +273,10 @@ func (h *WechatCallbackHandler) checkPostImageCheckStatus(postId int64) error {
 		case model.ImageCheckStatusFailed:
 			statusText = "检测失败"
 		}
-		
-		fmt.Printf("  [%d] 图片: %s, 状态: %d (%s), 建议: %s\n", 
+
+		fmt.Printf("  [%d] 图片: %s, 状态: %d (%s), 建议: %s\n",
 			i+1, check.ImageURL, check.Status, statusText, check.Suggest)
-		
+
 		if check.Status == model.ImageCheckStatusPending || check.Status == model.ImageCheckStatusChecking {
 			allCompleted = false
 		}
