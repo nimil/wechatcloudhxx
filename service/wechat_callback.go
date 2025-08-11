@@ -81,6 +81,18 @@ func (h *WechatCallbackHandler) HandleMediaCheckCallback(w http.ResponseWriter, 
 	fmt.Printf("请求体: %s\n", string(body))
 	fmt.Printf("=== 微信回调请求详情结束 ===\n")
 
+	// 首先尝试解析为验证请求格式
+	var verifyRequest struct {
+		Action string `json:"action"`
+	}
+	if err := json.Unmarshal(body, &verifyRequest); err == nil && verifyRequest.Action == "CheckContainerPath" {
+		// 这是验证请求，直接返回成功
+		log.Printf("收到验证请求: %s", verifyRequest.Action)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("success"))
+		return
+	}
+
 	// 解析回调数据
 	var callback WechatMediaCheckCallback
 	if err := json.Unmarshal(body, &callback); err != nil {
