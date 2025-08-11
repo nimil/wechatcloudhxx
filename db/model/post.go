@@ -14,6 +14,7 @@ type PostModel struct {
 	Tags         string    `gorm:"column:tags;type:text" json:"tags"` // JSON格式存储
 	Images       string    `gorm:"column:images;type:text" json:"images"` // JSON格式存储
 	IsPublic     bool      `gorm:"column:is_public;default:true" json:"isPublic"`
+	IsDeleted    bool      `gorm:"column:is_deleted;default:false;index" json:"isDeleted"`
 	Likes        int       `gorm:"column:likes;default:0" json:"likes"`
 	Comments     int       `gorm:"column:comments;default:0" json:"comments"`
 	Views        int       `gorm:"column:views;default:0" json:"views"`

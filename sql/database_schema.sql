@@ -52,6 +52,7 @@ CREATE TABLE `posts` (
   `tags` text DEFAULT NULL COMMENT '标签(JSON格式)',
   `images` text DEFAULT NULL COMMENT '图片URL列表(JSON格式)',
   `is_public` tinyint(1) DEFAULT 1 COMMENT '是否公开',
+  `is_deleted` tinyint(1) DEFAULT 0 COMMENT '是否已删除',
   `likes` int DEFAULT 0 COMMENT '点赞数',
   `comments` int DEFAULT 0 COMMENT '评论数',
   `views` int DEFAULT 0 COMMENT '浏览量',

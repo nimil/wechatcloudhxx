@@ -34,12 +34,7 @@ func main() {
 		}
 	}))
 
-	// 分类相关接口
-	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
-	http.HandleFunc("/api/categories/publish", service.UserMiddleware(categoryHandler.GetPublishCategoriesHandler))
-	http.HandleFunc("/api/topics/hot", service.UserMiddleware(categoryHandler.GetHotTopicsHandler))
-
-	// 评论相关接口
+	// 帖子详情和删除接口
 	http.HandleFunc("/api/posts/", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		if strings.HasSuffix(path, "/comments") {
@@ -54,9 +49,24 @@ func main() {
 		} else if strings.HasSuffix(path, "/like") {
 			likeHandler.ToggleLikeHandler(w, r)
 		} else {
-			http.NotFound(w, r)
+			// 处理帖子详情和删除
+			switch r.Method {
+			case http.MethodGet:
+				postHandler.GetPostDetailHandler(w, r)
+			case http.MethodDelete:
+				postHandler.DeletePostHandler(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			}
 		}
 	}))
+
+	// 分类相关接口
+	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
+	http.HandleFunc("/api/categories/publish", service.UserMiddleware(categoryHandler.GetPublishCategoriesHandler))
+	http.HandleFunc("/api/topics/hot", service.UserMiddleware(categoryHandler.GetHotTopicsHandler))
+
+
 
 	// 认证相关接口（不需要用户中间件）
 	http.HandleFunc("/api/auth/", authHandler.HandleAuthRequests)

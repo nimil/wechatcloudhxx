@@ -24,7 +24,7 @@ func (dao *PostDaoImpl) Create(post *model.PostModel) error {
 // GetById 根据ID获取帖子
 func (dao *PostDaoImpl) GetById(id int64) (*model.PostModel, error) {
 	var post model.PostModel
-	err := dao.db.Where("id = ?", id).First(&post).Error
+	err := dao.db.Where("id = ? AND is_deleted = ?", id, false).First(&post).Error
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +36,7 @@ func (dao *PostDaoImpl) GetList(page, pageSize int, category, sort string) ([]*m
 	var posts []*model.PostModel
 	var total int64
 	
-	query := dao.db.Model(&model.PostModel{}).Where("is_public = ?", true)
+	query := dao.db.Model(&model.PostModel{}).Where("is_public = ? AND is_deleted = ?", true, false)
 	
 	// 分类筛选
 	if category != "" && category != "all" {
@@ -74,9 +74,19 @@ func (dao *PostDaoImpl) Update(post *model.PostModel) error {
 	return dao.db.Save(post).Error
 }
 
-// Delete 删除帖子
+// Delete 删除帖子（物理删除）
 func (dao *PostDaoImpl) Delete(id int64) error {
 	return dao.db.Where("id = ?", id).Delete(&model.PostModel{}).Error
+}
+
+// SoftDelete 逻辑删除帖子
+func (dao *PostDaoImpl) SoftDelete(id int64) error {
+	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).Update("is_deleted", true).Error
+}
+
+// Restore 恢复帖子
+func (dao *PostDaoImpl) Restore(id int64) error {
+	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).Update("is_deleted", false).Error
 }
 
 // IncrementViews 增加浏览量

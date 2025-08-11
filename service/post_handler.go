@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // PostHandler 帖子处理器
@@ -107,6 +108,98 @@ func (h *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 		"code":    200,
 		"message": "发布成功",
 		"data":    result,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// GetPostDetailHandler 获取帖子详情处理器
+func (h *PostHandler) GetPostDetailHandler(w http.ResponseWriter, r *http.Request) {
+	// 设置响应头
+	w.Header().Set("Content-Type", "application/json")
+
+	// 从URL路径中提取帖子ID
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+	postIdStr := pathParts[3]
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	// 从用户上下文中获取用户ID
+	userCtx := GetUserFromContext(r)
+	var userId int64
+	if userCtx != nil && userCtx.User != nil {
+		userId = userCtx.User.Id
+	}
+
+	// 调用服务
+	result, err := h.postService.GetPostDetail(postId, userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 返回响应
+	response := map[string]interface{}{
+		"code":    200,
+		"message": "success",
+		"data":    result,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}
+
+// DeletePostHandler 删除帖子处理器
+func (h *PostHandler) DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	// 设置响应头
+	w.Header().Set("Content-Type", "application/json")
+
+	// 只允许DELETE请求
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 从URL路径中提取帖子ID
+	pathParts := strings.Split(r.URL.Path, "/")
+	if len(pathParts) < 4 {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+	postIdStr := pathParts[3]
+	postId, err := strconv.ParseInt(postIdStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	// 从用户上下文中获取用户ID
+	userCtx := GetUserFromContext(r)
+	if userCtx == nil || userCtx.User == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	userId := userCtx.User.Id
+
+	// 调用服务
+	err = h.postService.SoftDeletePost(postId, userId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 返回响应
+	response := map[string]interface{}{
+		"code":    200,
+		"message": "删除成功",
+		"data":    nil,
 	}
 
 	json.NewEncoder(w).Encode(response)

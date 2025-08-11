@@ -18,8 +18,14 @@ type PostDao interface {
 	// 更新帖子
 	Update(post *model.PostModel) error
 	
-	// 删除帖子
+	// 删除帖子（物理删除）
 	Delete(id int64) error
+	
+	// 逻辑删除帖子
+	SoftDelete(id int64) error
+	
+	// 恢复帖子
+	Restore(id int64) error
 	
 	// 增加浏览量
 	IncrementViews(id int64) error

@@ -144,6 +144,109 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64) (*Creat
 	}, nil
 }
 
+// GetPostDetail 获取帖子详情
+func (s *PostService) GetPostDetail(postId int64, userId int64) (*PostDetail, error) {
+	// 获取帖子信息
+	post, err := s.postDao.GetById(postId)
+	if err != nil {
+		return nil, fmt.Errorf("帖子不存在: %v", err)
+	}
+
+	// 增加浏览量
+	go func() {
+		if err := s.postDao.IncrementViews(postId); err != nil {
+			fmt.Printf("增加浏览量失败: %v\n", err)
+		}
+	}()
+
+	// 获取作者信息
+	author, err := s.userDao.GetById(post.AuthorId)
+	if err != nil {
+		// 如果获取作者信息失败，使用默认信息
+		author = &model.UserModel{
+			Id:         post.AuthorId,
+			Nickname:   "未知用户",
+			Avatar:     "",
+			Bio:        "",
+			Level:      1,
+			IsVerified: false,
+		}
+	}
+
+	// 解析标签和图片
+	var tags []string
+	var images []string
+	json.Unmarshal([]byte(post.Tags), &tags)
+	json.Unmarshal([]byte(post.Images), &images)
+
+	// 检查是否点赞
+	isLiked := false
+	if userId != 0 {
+		likedPostIds, err := s.userLikeDao.GetUserLikedPostIds(userId)
+		if err == nil {
+			for _, likedId := range likedPostIds {
+				if likedId == post.Id {
+					isLiked = true
+					break
+				}
+			}
+		}
+	}
+
+	postDetail := &PostDetail{
+		Id:      post.Id,
+		Title:   post.Title,
+		Excerpt: post.Excerpt,
+		Content: post.Content,
+		Author: UserInfo{
+			Id:         author.Id,
+			Nickname:   author.Nickname,
+			Avatar:     author.Avatar,
+			Bio:        author.Bio,
+			Level:      author.Level,
+			IsVerified: author.IsVerified,
+		},
+		Category:     post.Category,
+		CategoryName: post.CategoryName,
+		Tags:         tags,
+		Images:       images,
+		Stats: PostStats{
+			Likes:    post.Likes,
+			Comments: post.Comments,
+			Views:    post.Views,
+			Shares:   post.Shares,
+		},
+		IsLiked:     isLiked,
+		IsCollected: false, // TODO: 实现收藏功能
+		CreatedAt:   post.CreatedAt,
+		UpdatedAt:   post.UpdatedAt,
+	}
+
+	return postDetail, nil
+}
+
+// SoftDeletePost 逻辑删除帖子
+func (s *PostService) SoftDeletePost(postId int64, userId int64) error {
+	// 获取帖子信息
+	post, err := s.postDao.GetById(postId)
+	if err != nil {
+		return fmt.Errorf("帖子不存在: %v", err)
+	}
+
+	// 检查权限：只有作者可以删除自己的帖子
+	if post.AuthorId != userId {
+		return fmt.Errorf("无权限删除此帖子")
+	}
+
+	// 执行逻辑删除
+	err = s.postDao.SoftDelete(postId)
+	if err != nil {
+		return fmt.Errorf("删除帖子失败: %v", err)
+	}
+
+	return nil
+}
+
 // GetPostList 获取帖子列表
 func (s *PostService) GetPostList(page, pageSize int, category, sort string, userId int64) (*PostListResponse, error) {
 	// 参数验证
