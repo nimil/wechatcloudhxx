@@ -19,9 +19,11 @@ func main() {
 	categoryHandler := service.NewCategoryHandler()
 	commentHandler := service.NewCommentHandler()
 	likeHandler := service.NewLikeHandler()
+	userHandler := service.NewUserHandler()
+	authHandler := service.NewAuthHandler()
 
 	// 帖子相关接口
-	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/posts", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			postHandler.GetPostListHandler(w, r)
@@ -30,15 +32,15 @@ func main() {
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	})
+	}))
 
 	// 分类相关接口
-	http.HandleFunc("/api/categories", categoryHandler.GetCategoriesHandler)
-	http.HandleFunc("/api/categories/publish", categoryHandler.GetPublishCategoriesHandler)
-	http.HandleFunc("/api/topics/hot", categoryHandler.GetHotTopicsHandler)
+	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
+	http.HandleFunc("/api/categories/publish", service.UserMiddleware(categoryHandler.GetPublishCategoriesHandler))
+	http.HandleFunc("/api/topics/hot", service.UserMiddleware(categoryHandler.GetHotTopicsHandler))
 
 	// 评论相关接口
-	http.HandleFunc("/api/posts/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/posts/", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		if strings.HasSuffix(path, "/comments") {
 			switch r.Method {
@@ -54,7 +56,13 @@ func main() {
 		} else {
 			http.NotFound(w, r)
 		}
-	})
+	}))
+
+	// 认证相关接口（不需要用户中间件）
+	http.HandleFunc("/api/auth/", authHandler.HandleAuthRequests)
+
+	// 用户相关接口
+	http.HandleFunc("/api/user/", service.UserMiddleware(userHandler.HandleUserRequests))
 
 	log.Fatal(http.ListenAndServe(":80", nil))
 }

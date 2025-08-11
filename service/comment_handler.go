@@ -50,18 +50,14 @@ func (h *CommentHandler) CreateCommentHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userIdStr := r.Header.Get("X-User-Id")
-	if userIdStr == "" {
+	// 从用户上下文中获取用户ID
+	userCtx := GetUserFromContext(r)
+	if userCtx == nil || userCtx.User == nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 	
-	userId, err := strconv.ParseInt(userIdStr, 10, 64)
-	if err != nil {
-		http.Error(w, "Invalid user ID", http.StatusBadRequest)
-		return
-	}
+	userId := userCtx.User.Id
 
 	// 调用服务
 	result, err := h.commentService.CreateComment(postId, &req, userId)
