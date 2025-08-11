@@ -19,13 +19,13 @@ const (
 
 // 内容安全检测标签值常量
 const (
-	LabelNormal     = 100   // 正常/垃圾信息
-	LabelPorn       = 20001 // 色情
-	LabelAbuse      = 20002 // 辱骂
-	LabelPolitics   = 20003 // 政治
-	LabelAd         = 20006 // 广告
-	LabelTerrorism  = 20008 // 违法犯罪
-	LabelOther      = 20012 // 其他
+	LabelNormal    = 100   // 正常/垃圾信息
+	LabelPorn      = 20001 // 色情
+	LabelAbuse     = 20002 // 辱骂
+	LabelPolitics  = 20003 // 政治
+	LabelAd        = 20006 // 广告
+	LabelTerrorism = 20008 // 违法犯罪
+	LabelOther     = 20012 // 其他
 )
 
 // 内容安全检测建议值常量
@@ -70,9 +70,9 @@ type MsgSecCheckDetail struct {
 
 // MsgSecCheckResponse 内容安全检测响应
 type MsgSecCheckResponse struct {
-	Errcode int                  `json:"errcode"`
-	Errmsg  string               `json:"errmsg"`
-	TraceId string               `json:"trace_id,omitempty"`
+	Errcode int    `json:"errcode"`
+	Errmsg  string `json:"errmsg"`
+	TraceId string `json:"trace_id,omitempty"`
 	Result  struct {
 		Suggest string `json:"suggest"`
 		Label   int    `json:"label"`
@@ -117,6 +117,7 @@ func (s *ContentSecurityService) CheckContentSecurity(openid, content string, sc
 	if err != nil {
 		return nil, fmt.Errorf("读取响应内容失败: %v", err)
 	}
+	fmt.Printf("%s", body)
 
 	// 解析响应
 	var response MsgSecCheckResponse
@@ -141,11 +142,11 @@ func (s *ContentSecurityService) IsContentSafe(openid, content string, scene int
 
 	// 只判断suggest字段，只有pass时通过
 	isSafe := response.Result.Suggest == "pass"
-	
+
 	// 打印检测结果日志
-	fmt.Printf("[内容安全检测] OpenID: %s, 场景: %d, 建议: %s, 标签: %d, 是否通过: %t\n", 
+	fmt.Printf("[内容安全检测] OpenID: %s, 场景: %d, 建议: %s, 标签: %d, 是否通过: %t\n",
 		openid, scene, response.Result.Suggest, response.Result.Label, isSafe)
-	
+
 	return isSafe, nil
 }
 
@@ -163,9 +164,9 @@ func (s *ContentSecurityService) GetContentSecurityDetail(openid, content string
 
 	// 只判断suggest字段，只有pass时通过
 	isSafe := response.Result.Suggest == "pass"
-	
+
 	// 打印检测结果日志
-	fmt.Printf("[内容安全检测详情] OpenID: %s, 场景: %d, 建议: %s, 标签: %d, 是否通过: %t, 追踪ID: %s\n", 
+	fmt.Printf("[内容安全检测详情] OpenID: %s, 场景: %d, 建议: %s, 标签: %d, 是否通过: %t, 追踪ID: %s\n",
 		openid, scene, response.Result.Suggest, response.Result.Label, isSafe, response.TraceId)
 
 	detail := &ContentSecurityDetail{
@@ -185,15 +186,15 @@ func (s *ContentSecurityService) GetContentSecurityDetail(openid, content string
 
 // ContentSecurityDetail 内容安全检测详细分析结果
 type ContentSecurityDetail struct {
-	IsSafe    bool                 `json:"isSafe"`
-	Suggest   string               `json:"suggest"`
-	Label     int                  `json:"label"`
-	TraceId   string               `json:"traceId"`
-	Errcode   int                  `json:"errcode"`
-	Errmsg    string               `json:"errmsg"`
-	Details   []MsgSecCheckDetail  `json:"details"`
-	RiskLevel string               `json:"riskLevel"`
-	Keywords  []string             `json:"keywords"`
+	IsSafe    bool                `json:"isSafe"`
+	Suggest   string              `json:"suggest"`
+	Label     int                 `json:"label"`
+	TraceId   string              `json:"traceId"`
+	Errcode   int                 `json:"errcode"`
+	Errmsg    string              `json:"errmsg"`
+	Details   []MsgSecCheckDetail `json:"details"`
+	RiskLevel string              `json:"riskLevel"`
+	Keywords  []string            `json:"keywords"`
 }
 
 // calculateRiskLevel 计算风险等级
