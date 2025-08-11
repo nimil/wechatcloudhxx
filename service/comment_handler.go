@@ -59,8 +59,11 @@ func (h *CommentHandler) CreateCommentHandler(w http.ResponseWriter, r *http.Req
 	
 	userId := userCtx.User.Id
 
+	// 从请求头获取openid
+	openid := r.Header.Get("x-wx-openid")
+
 	// 调用服务
-	result, err := h.commentService.CreateComment(postId, &req, userId)
+	result, err := h.commentService.CreateComment(postId, &req, userId, openid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

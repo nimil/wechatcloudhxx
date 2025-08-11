@@ -22,6 +22,7 @@ func main() {
 	userHandler := service.NewUserHandler()
 	authHandler := service.NewAuthHandler()
 
+
 	// 帖子相关接口
 	http.HandleFunc("/api/posts", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
@@ -73,6 +74,8 @@ func main() {
 
 	// 用户相关接口
 	http.HandleFunc("/api/user/", service.UserMiddleware(userHandler.HandleUserRequests))
+
+
 
 	log.Fatal(http.ListenAndServe(":80", nil))
 }

@@ -15,6 +15,7 @@ type PostService struct {
 	userDao     dao.UserDao
 	categoryDao dao.CategoryDao
 	userLikeDao dao.UserLikeDao
+	securityService *ContentSecurityService
 }
 
 // NewPostService 创建帖子服务实例
@@ -24,6 +25,7 @@ func NewPostService() *PostService {
 		userDao:     dao.NewUserDao(),
 		categoryDao: dao.NewCategoryDao(),
 		userLikeDao: dao.NewUserLikeDao(),
+		securityService: NewContentSecurityService(),
 	}
 }
 
@@ -95,11 +97,36 @@ type Pagination struct {
 }
 
 // CreatePost 创建帖子
-func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64) (*CreatePostResponse, error) {
+func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64, openid string) (*CreatePostResponse, error) {
 	// 验证分类是否存在
 	category, err := s.categoryDao.GetByCode(req.Category)
 	if err != nil {
 		return nil, fmt.Errorf("分类不存在: %v", err)
+	}
+
+	// 内容安全校验
+	if openid != "" {
+		// 检查标题安全性（使用论坛场景）
+		if req.Title != "" {
+			isSafe, err := s.securityService.IsContentSafe(openid, req.Title, SceneForum)
+			if err != nil {
+				return nil, fmt.Errorf("标题安全检测失败: %v", err)
+			}
+			if !isSafe {
+				return nil, fmt.Errorf("标题包含违规内容，请修改后重试")
+			}
+		}
+
+		// 检查内容安全性（使用论坛场景）
+		if req.Content != "" {
+			isSafe, err := s.securityService.IsContentSafe(openid, req.Content, SceneForum)
+			if err != nil {
+				return nil, fmt.Errorf("内容安全检测失败: %v", err)
+			}
+			if !isSafe {
+				return nil, fmt.Errorf("内容包含违规信息，请修改后重试")
+			}
+		}
 	}
 
 	// 处理标签和图片

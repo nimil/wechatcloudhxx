@@ -96,8 +96,11 @@ func (h *PostHandler) CreatePostHandler(w http.ResponseWriter, r *http.Request) 
 	
 	userId := userCtx.User.Id
 
+	// 从请求头获取openid
+	openid := r.Header.Get("x-wx-openid")
+
 	// 调用服务
-	result, err := h.postService.CreatePost(&req, userId)
+	result, err := h.postService.CreatePost(&req, userId, openid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

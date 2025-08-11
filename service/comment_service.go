@@ -13,6 +13,7 @@ type CommentService struct {
 	commentDao dao.CommentDao
 	userDao    dao.UserDao
 	postDao    dao.PostDao
+	securityService *ContentSecurityService
 }
 
 // NewCommentService 创建评论服务实例
@@ -21,6 +22,7 @@ func NewCommentService() *CommentService {
 		commentDao: dao.NewCommentDao(),
 		userDao:    dao.NewUserDao(),
 		postDao:    dao.NewPostDao(),
+		securityService: NewContentSecurityService(),
 	}
 }
 
@@ -56,11 +58,22 @@ type CommentDetail struct {
 }
 
 // CreateComment 创建评论
-func (s *CommentService) CreateComment(postId int64, req *CreateCommentRequest, authorId int64) (*CreateCommentResponse, error) {
+func (s *CommentService) CreateComment(postId int64, req *CreateCommentRequest, authorId int64, openid string) (*CreateCommentResponse, error) {
 	// 验证帖子是否存在
 	_, err := s.postDao.GetById(postId)
 	if err != nil {
 		return nil, fmt.Errorf("帖子不存在: %v", err)
+	}
+
+	// 内容安全校验
+	if openid != "" && req.Content != "" {
+		isSafe, err := s.securityService.IsContentSafe(openid, req.Content, SceneComment)
+		if err != nil {
+			return nil, fmt.Errorf("内容安全检测失败: %v", err)
+		}
+		if !isSafe {
+			return nil, fmt.Errorf("评论内容包含违规信息，请修改后重试")
+		}
 	}
 
 	// 创建评论
