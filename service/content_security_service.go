@@ -38,6 +38,7 @@ const (
 // ContentSecurityService 内容安全校验服务
 type ContentSecurityService struct {
 	client *http.Client
+	cloudStorage *WechatCloudStorageService
 }
 
 // NewContentSecurityService 创建内容安全校验服务实例
@@ -46,6 +47,7 @@ func NewContentSecurityService() *ContentSecurityService {
 		client: &http.Client{
 			Timeout: 10 * time.Second,
 		},
+		cloudStorage: NewWechatCloudStorageService(),
 	}
 }
 
@@ -429,4 +431,112 @@ func (s *ContentSecurityService) GetSuggestDescription(suggest string) string {
 	default:
 		return "未知"
 	}
+}
+
+// CheckCloudStorageImageSecurity 检查云存储图片内容安全性
+func (s *ContentSecurityService) CheckCloudStorageImageSecurity(cloudID, openid string, scene int) (*MediaCheckResponse, error) {
+	// 验证云存储文件ID格式
+	if !s.cloudStorage.ValidateCloudID(cloudID) {
+		return nil, fmt.Errorf("无效的云存储文件ID格式: %s", cloudID)
+	}
+
+	// 获取真实下载URL
+	downloadURL, err := s.cloudStorage.GetFileDownloadURL(cloudID)
+	if err != nil {
+		return nil, fmt.Errorf("获取云存储文件下载URL失败: %v", err)
+	}
+
+	fmt.Printf("云存储文件ID: %s, 获取到下载URL: %s\n", cloudID, downloadURL)
+
+	// 使用真实下载URL进行内容检测
+	return s.CheckImageSecurity(downloadURL, openid, scene)
+}
+
+// CheckCloudStorageAudioSecurity 检查云存储音频内容安全性
+func (s *ContentSecurityService) CheckCloudStorageAudioSecurity(cloudID, openid string, scene int) (*MediaCheckResponse, error) {
+	// 验证云存储文件ID格式
+	if !s.cloudStorage.ValidateCloudID(cloudID) {
+		return nil, fmt.Errorf("无效的云存储文件ID格式: %s", cloudID)
+	}
+
+	// 获取真实下载URL
+	downloadURL, err := s.cloudStorage.GetFileDownloadURL(cloudID)
+	if err != nil {
+		return nil, fmt.Errorf("获取云存储文件下载URL失败: %v", err)
+	}
+
+	fmt.Printf("云存储文件ID: %s, 获取到下载URL: %s\n", cloudID, downloadURL)
+
+	// 使用真实下载URL进行内容检测
+	return s.CheckAudioSecurity(downloadURL, openid, scene)
+}
+
+// CheckMultipleCloudStorageImagesSecurity 批量检查云存储图片内容安全性
+func (s *ContentSecurityService) CheckMultipleCloudStorageImagesSecurity(cloudIDs []string, openid string, scene int) (map[string]*MediaCheckResponse, error) {
+	if len(cloudIDs) == 0 {
+		return nil, fmt.Errorf("文件ID列表不能为空")
+	}
+
+	// 验证所有云存储文件ID格式
+	for _, cloudID := range cloudIDs {
+		if !s.cloudStorage.ValidateCloudID(cloudID) {
+			return nil, fmt.Errorf("无效的云存储文件ID格式: %s", cloudID)
+		}
+	}
+
+	// 批量获取真实下载URL
+	downloadURLs, err := s.cloudStorage.GetMultipleFileDownloadURLs(cloudIDs)
+	if err != nil {
+		return nil, fmt.Errorf("批量获取云存储文件下载URL失败: %v", err)
+	}
+
+	fmt.Printf("批量获取到 %d 个文件的下载URL\n", len(downloadURLs))
+
+	// 批量进行内容检测
+	results := make(map[string]*MediaCheckResponse)
+	for cloudID, downloadURL := range downloadURLs {
+		response, err := s.CheckImageSecurity(downloadURL, openid, scene)
+		if err != nil {
+			fmt.Printf("警告: 文件 %s 内容检测失败: %v\n", cloudID, err)
+			continue
+		}
+		results[cloudID] = response
+	}
+
+	return results, nil
+}
+
+// CheckMultipleCloudStorageAudiosSecurity 批量检查云存储音频内容安全性
+func (s *ContentSecurityService) CheckMultipleCloudStorageAudiosSecurity(cloudIDs []string, openid string, scene int) (map[string]*MediaCheckResponse, error) {
+	if len(cloudIDs) == 0 {
+		return nil, fmt.Errorf("文件ID列表不能为空")
+	}
+
+	// 验证所有云存储文件ID格式
+	for _, cloudID := range cloudIDs {
+		if !s.cloudStorage.ValidateCloudID(cloudID) {
+			return nil, fmt.Errorf("无效的云存储文件ID格式: %s", cloudID)
+		}
+	}
+
+	// 批量获取真实下载URL
+	downloadURLs, err := s.cloudStorage.GetMultipleFileDownloadURLs(cloudIDs)
+	if err != nil {
+		return nil, fmt.Errorf("批量获取云存储文件下载URL失败: %v", err)
+	}
+
+	fmt.Printf("批量获取到 %d 个文件的下载URL\n", len(downloadURLs))
+
+	// 批量进行内容检测
+	results := make(map[string]*MediaCheckResponse)
+	for cloudID, downloadURL := range downloadURLs {
+		response, err := s.CheckAudioSecurity(downloadURL, openid, scene)
+		if err != nil {
+			fmt.Printf("警告: 文件 %s 内容检测失败: %v\n", cloudID, err)
+			continue
+		}
+		results[cloudID] = response
+	}
+
+	return results, nil
 }

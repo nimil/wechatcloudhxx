@@ -179,11 +179,26 @@ func (s *PostService) CreatePost(req *CreatePostRequest, authorId int64, openid 
 			if imageURL != "" {
 				fmt.Printf("检测图片 %d: %s\n", i+1, imageURL)
 				
-				// 异步检测图片内容
-				result, err := s.securityService.CheckImageSecurity(imageURL, openid, SceneForum)
-				if err != nil {
-					fmt.Printf("❌ 图片%d检测失败: %v\n", i+1, err)
-					return nil, fmt.Errorf("图片安全检测失败: %v", err)
+				var result *MediaCheckResponse
+				var err error
+				
+				// 判断是否为云存储文件ID，如果是则进行转换
+				if s.securityService.cloudStorage.ValidateCloudID(imageURL) {
+					fmt.Printf("检测到云存储文件ID，进行转换: %s\n", imageURL)
+					
+					// 使用云存储文件ID进行检测
+					result, err = s.securityService.CheckCloudStorageImageSecurity(imageURL, openid, SceneForum)
+					if err != nil {
+						fmt.Printf("❌ 云存储图片%d检测失败: %v\n", i+1, err)
+						return nil, fmt.Errorf("云存储图片安全检测失败: %v", err)
+					}
+				} else {
+					// 直接使用URL进行检测
+					result, err = s.securityService.CheckImageSecurity(imageURL, openid, SceneForum)
+					if err != nil {
+						fmt.Printf("❌ 图片%d检测失败: %v\n", i+1, err)
+						return nil, fmt.Errorf("图片安全检测失败: %v", err)
+					}
 				}
 				
 				// 检查检测请求是否成功提交
