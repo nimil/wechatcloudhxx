@@ -207,3 +207,59 @@ func (h *PostHandler) DeletePostHandler(w http.ResponseWriter, r *http.Request) 
 
 	json.NewEncoder(w).Encode(response)
 }
+
+// GetMyPostsHandler 获取我的帖子处理器
+func (h *PostHandler) GetMyPostsHandler(w http.ResponseWriter, r *http.Request) {
+	// 设置响应头
+	w.Header().Set("Content-Type", "application/json")
+
+	// 只允许GET请求
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// 获取查询参数
+	pageStr := r.URL.Query().Get("page")
+	pageSizeStr := r.URL.Query().Get("pageSize")
+
+	// 解析分页参数
+	page := 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	pageSize := 10
+	if pageSizeStr != "" {
+		if ps, err := strconv.Atoi(pageSizeStr); err == nil && ps > 0 && ps <= 50 {
+			pageSize = ps
+		}
+	}
+
+	// 从用户上下文中获取用户ID
+	userCtx := GetUserFromContext(r)
+	if userCtx == nil || userCtx.User == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	
+	userId := userCtx.User.Id
+
+	// 调用服务
+	result, err := h.postService.GetUserPosts(userId, page, pageSize)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// 返回响应
+	response := map[string]interface{}{
+		"code":    200,
+		"message": "success",
+		"data":    result,
+	}
+
+	json.NewEncoder(w).Encode(response)
+}

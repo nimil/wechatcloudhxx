@@ -35,6 +35,9 @@ func main() {
 		}
 	}))
 
+	// 我的帖子接口
+	http.HandleFunc("/api/posts/my", service.UserMiddleware(postHandler.GetMyPostsHandler))
+
 	// 帖子详情和删除接口
 	http.HandleFunc("/api/posts/", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path

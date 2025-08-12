@@ -157,4 +157,31 @@ func (dao *PostDaoImpl) DecrementComments(id int64) error {
 // UpdateImageCheckStatus 更新图片检测状态
 func (dao *PostDaoImpl) UpdateImageCheckStatus(id int64, status int) error {
 	return dao.db.Model(&model.PostModel{}).Where("id = ?", id).Update("image_check_status", status).Error
+}
+
+// GetUserPosts 获取用户发布的帖子列表（未删除）
+func (dao *PostDaoImpl) GetUserPosts(userId int64, page, pageSize int) ([]*model.PostModel, int64, error) {
+	var posts []*model.PostModel
+	var total int64
+	
+	// 查询用户发布的未删除帖子
+	query := dao.db.Model(&model.PostModel{}).Where("author_id = ? AND is_deleted = ?", userId, false)
+	
+	// 获取总数
+	err := query.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	// 按创建时间倒序排列
+	query = query.Order("created_at DESC")
+	
+	// 分页
+	offset := (page - 1) * pageSize
+	err = query.Offset(offset).Limit(pageSize).Find(&posts).Error
+	if err != nil {
+		return nil, 0, err
+	}
+	
+	return posts, total, nil
 } 

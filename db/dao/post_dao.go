@@ -47,4 +47,7 @@ type PostDao interface {
 	
 	// 更新图片检测状态
 	UpdateImageCheckStatus(id int64, status int) error
+	
+	// 获取用户发布的帖子列表（未删除）
+	GetUserPosts(userId int64, page, pageSize int) ([]*model.PostModel, int64, error)
 } 

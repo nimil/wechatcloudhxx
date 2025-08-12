@@ -461,3 +461,91 @@ func (s *PostService) GetPostList(page, pageSize int, category, sort string, use
 		},
 	}, nil
 }
+
+// GetUserPosts 获取用户发布的帖子列表
+func (s *PostService) GetUserPosts(userId int64, page, pageSize int) (*PostListResponse, error) {
+	// 参数验证
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 50 {
+		pageSize = 10
+	}
+
+	// 获取用户发布的帖子列表
+	posts, total, err := s.postDao.GetUserPosts(userId, page, pageSize)
+	if err != nil {
+		return nil, fmt.Errorf("获取用户帖子列表失败: %v", err)
+	}
+
+	// 构建响应数据
+	postDetails := make([]*PostDetail, 0, len(posts))
+	for _, post := range posts {
+		// 获取作者信息
+		author, err := s.userDao.GetById(post.AuthorId)
+		if err != nil {
+			// 如果获取作者信息失败，使用默认信息
+			author = &model.UserModel{
+				Id:         post.AuthorId,
+				Nickname:   "未知用户",
+				Avatar:     "",
+				Bio:        "",
+				Level:      1,
+				IsVerified: false,
+			}
+		}
+
+		// 解析标签和图片
+		var tags []string
+		var images []string
+		json.Unmarshal([]byte(post.Tags), &tags)
+		json.Unmarshal([]byte(post.Images), &images)
+
+		// 检查是否点赞（用户自己的帖子默认不显示点赞状态）
+		isLiked := false
+
+		postDetail := &PostDetail{
+			Id:      post.Id,
+			Title:   post.Title,
+			Excerpt: post.Excerpt,
+			Content: post.Content,
+			Author: UserInfo{
+				Id:         author.Id,
+				Nickname:   author.Nickname,
+				Avatar:     author.Avatar,
+				Bio:        author.Bio,
+				Level:      author.Level,
+				IsVerified: author.IsVerified,
+			},
+			Category:     post.Category,
+			CategoryName: post.CategoryName,
+			Tags:         tags,
+			Images:       images,
+			Stats: PostStats{
+				Likes:    post.Likes,
+				Comments: post.Comments,
+				Views:    post.Views,
+				Shares:   post.Shares,
+			},
+			IsLiked:     isLiked,
+			IsCollected: false, // TODO: 实现收藏功能
+			CreatedAt:   post.CreatedAt,
+			UpdatedAt:   post.UpdatedAt,
+		}
+		postDetails = append(postDetails, postDetail)
+	}
+
+	// 计算分页信息
+	totalPages := int(math.Ceil(float64(total) / float64(pageSize)))
+	hasMore := page < totalPages
+
+	return &PostListResponse{
+		List: postDetails,
+		Pagination: Pagination{
+			Current:  page,
+			PageSize: pageSize,
+			Total:    total,
+			HasMore:  hasMore,
+		},
+	}, nil
+}
