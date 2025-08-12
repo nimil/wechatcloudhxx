@@ -77,7 +77,7 @@ func (s *AuthService) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 	// 生成随机用户名
 	username := s.generateRandomUsername()
-	
+
 	// 创建新用户
 	user := &model.UserModel{
 		Username: username,
@@ -174,7 +174,12 @@ func (s *AuthService) CheckUserExists(w http.ResponseWriter, r *http.Request) {
 
 	// 查询用户是否存在
 	user, _ := s.userDao.GetUserByOpenId(openId)
-	
+
+	if user == nil {
+		http.Error(w, "user missing register first!", http.StatusBadRequest)
+		return
+	}
+
 	response := map[string]interface{}{
 		"code": 0,
 		"msg":  "success",
@@ -192,9 +197,9 @@ func (s *AuthService) CheckUserExists(w http.ResponseWriter, r *http.Request) {
 func (s *AuthService) generateRandomUsername() string {
 	// 设置随机种子
 	rand.Seed(time.Now().UnixNano())
-	
+
 	// 生成6位随机数字
 	randomNum := rand.Intn(900000) + 100000 // 100000-999999
-	
+
 	return fmt.Sprintf("user%d", randomNum)
 }
