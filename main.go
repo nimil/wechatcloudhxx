@@ -24,11 +24,11 @@ func main() {
 
 
 	// 统一的帖子路由处理器
-	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/posts/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 		
-		// 精确匹配 /api/posts
-		if path == "/api/posts" {
+		// 精确匹配 /api/posts/
+		if path == "/api/posts/" {
 			switch r.Method {
 			case http.MethodGet:
 				// GET 请求不需要认证，直接处理
@@ -42,10 +42,10 @@ func main() {
 			return
 		}
 		
-		// 处理 /api/posts/ 开头的路径（需要认证）
-		service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
-			path := r.URL.Path
-			if strings.HasSuffix(path, "/comments") {
+		// 处理 /api/posts/ 开头的路径
+		if strings.HasSuffix(path, "/comments") {
+			// 评论相关操作需要认证
+			service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 				switch r.Method {
 				case http.MethodGet:
 					commentHandler.GetCommentListHandler(w, r)
@@ -54,20 +54,29 @@ func main() {
 				default:
 					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 				}
-			} else if strings.HasSuffix(path, "/like") {
-				likeHandler.ToggleLikeHandler(w, r)
-			} else {
-				// 处理帖子详情和删除
-				switch r.Method {
-				case http.MethodGet:
-					postHandler.GetPostDetailHandler(w, r)
-				case http.MethodDelete:
-					postHandler.DeletePostHandler(w, r)
-				default:
-					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-				}
+			})(w, r)
+		} else if strings.HasSuffix(path, "/like") {
+			// 点赞操作需要认证
+			service.UserMiddleware(likeHandler.ToggleLikeHandler)(w, r)
+		} else {
+			// 处理帖子详情和删除
+			switch r.Method {
+			case http.MethodGet:
+				// 获取帖子详情不需要认证
+				postHandler.GetPostDetailHandler(w, r)
+			case http.MethodDelete:
+				// 删除帖子需要认证
+				service.UserMiddleware(postHandler.DeletePostHandler)(w, r)
+			default:
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			}
-		})(w, r)
+		}
+	})
+
+	// 处理 /api/posts 路径（不带斜杠）
+	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
+		// 重定向到带斜杠的路径
+		http.Redirect(w, r, "/api/posts/", http.StatusMovedPermanently)
 	})
 
 	// 分类相关接口
