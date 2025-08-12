@@ -23,49 +23,52 @@ func main() {
 	authHandler := service.NewAuthHandler()
 
 
-	// 帖子相关接口
+	// 统一的帖子路由处理器
 	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			// GET 请求不需要认证，直接处理
-			postHandler.GetPostListHandler(w, r)
-		case http.MethodPost:
-			// POST 请求需要认证
-			service.UserMiddleware(postHandler.CreatePostHandler)(w, r)
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	// 我的帖子接口
-	http.HandleFunc("/api/posts/my", service.UserMiddleware(postHandler.GetMyPostsHandler))
-
-	// 帖子详情和删除接口
-	http.HandleFunc("/api/posts/", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		if strings.HasSuffix(path, "/comments") {
+		
+		// 精确匹配 /api/posts
+		if path == "/api/posts" {
 			switch r.Method {
 			case http.MethodGet:
-				commentHandler.GetCommentListHandler(w, r)
+				// GET 请求不需要认证，直接处理
+				postHandler.GetPostListHandler(w, r)
 			case http.MethodPost:
-				commentHandler.CreateCommentHandler(w, r)
+				// POST 请求需要认证
+				service.UserMiddleware(postHandler.CreatePostHandler)(w, r)
 			default:
 				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			}
-		} else if strings.HasSuffix(path, "/like") {
-			likeHandler.ToggleLikeHandler(w, r)
-		} else {
-			// 处理帖子详情和删除
-			switch r.Method {
-			case http.MethodGet:
-				postHandler.GetPostDetailHandler(w, r)
-			case http.MethodDelete:
-				postHandler.DeletePostHandler(w, r)
-			default:
-				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			}
+			return
 		}
-	}))
+		
+		// 处理 /api/posts/ 开头的路径（需要认证）
+		service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
+			path := r.URL.Path
+			if strings.HasSuffix(path, "/comments") {
+				switch r.Method {
+				case http.MethodGet:
+					commentHandler.GetCommentListHandler(w, r)
+				case http.MethodPost:
+					commentHandler.CreateCommentHandler(w, r)
+				default:
+					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				}
+			} else if strings.HasSuffix(path, "/like") {
+				likeHandler.ToggleLikeHandler(w, r)
+			} else {
+				// 处理帖子详情和删除
+				switch r.Method {
+				case http.MethodGet:
+					postHandler.GetPostDetailHandler(w, r)
+				case http.MethodDelete:
+					postHandler.DeletePostHandler(w, r)
+				default:
+					http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				}
+			}
+		})(w, r)
+	})
 
 	// 分类相关接口
 	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
