@@ -24,16 +24,18 @@ func main() {
 
 
 	// 帖子相关接口
-	http.HandleFunc("/api/posts", service.UserMiddleware(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/posts", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
+			// GET 请求不需要认证，直接处理
 			postHandler.GetPostListHandler(w, r)
 		case http.MethodPost:
-			postHandler.CreatePostHandler(w, r)
+			// POST 请求需要认证
+			service.UserMiddleware(postHandler.CreatePostHandler)(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
-	}))
+	})
 
 	// 我的帖子接口
 	http.HandleFunc("/api/posts/my", service.UserMiddleware(postHandler.GetMyPostsHandler))
@@ -68,7 +70,7 @@ func main() {
 	// 分类相关接口
 	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
 	http.HandleFunc("/api/categories/publish", service.UserMiddleware(categoryHandler.GetPublishCategoriesHandler))
-	http.HandleFunc("/api/topics/hot", service.UserMiddleware(categoryHandler.GetHotTopicsHandler))
+	http.HandleFunc("/api/topics/hot", categoryHandler.GetHotTopicsHandler)
 
 
 

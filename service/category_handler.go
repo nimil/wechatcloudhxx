@@ -67,13 +67,11 @@ func (h *CategoryHandler) GetHotTopicsHandler(w http.ResponseWriter, r *http.Req
 	// 设置响应头
 	w.Header().Set("Content-Type", "application/json")
 
-	// 获取用户ID（这里简化处理，实际应该从token中获取）
-	userIdStr := r.Header.Get("X-User-Id")
+	// 从用户上下文中获取用户ID
+	userCtx := GetUserFromContext(r)
 	var userId int64
-	if userIdStr != "" {
-		if id, err := strconv.ParseInt(userIdStr, 10, 64); err == nil {
-			userId = id
-		}
+	if userCtx != nil && userCtx.User != nil {
+		userId = userCtx.User.Id
 	}
 
 	// 调用服务

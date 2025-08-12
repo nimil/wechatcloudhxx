@@ -272,3 +272,4 @@ function loadMore() {
 - [获取帖子列表](/api/posts) - 获取所有公开帖子
 - [获取帖子详情](/api/posts/{id}) - 获取单个帖子详情
 - [删除帖子](/api/posts/{id}) - 删除指定帖子
+
