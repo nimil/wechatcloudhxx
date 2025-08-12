@@ -58,6 +58,9 @@ func main() {
 		} else if strings.HasSuffix(path, "/like") {
 			// 点赞操作需要认证
 			service.UserMiddleware(likeHandler.ToggleLikeHandler)(w, r)
+		} else if strings.HasSuffix(path, "/my") {
+			// 获取我的帖子需要认证
+			service.UserMiddleware(postHandler.GetMyPostsHandler)(w, r)
 		} else {
 			// 处理帖子详情和删除
 			switch r.Method {
