@@ -7,7 +7,7 @@ type CategoryModel struct {
 	Id          int64     `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
 	Name        string    `gorm:"column:name;type:varchar(50);not null" json:"name"`
 	Code        string    `gorm:"column:code;type:varchar(20);not null;uniqueIndex" json:"code"`
-	Icon        string    `gorm:"column:icon;type:varchar(20)" json:"icon"`
+	Icon        string    `gorm:"column:icon;type:varchar(50)" json:"icon"`
 	Description string    `gorm:"column:description;type:varchar(200)" json:"description"`
 	PostCount   int       `gorm:"column:post_count;default:0" json:"postCount"`
 	Sort        int       `gorm:"column:sort;default:0" json:"sort"`

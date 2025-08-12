@@ -29,7 +29,7 @@ CREATE TABLE `categories` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '分类ID',
   `name` varchar(50) NOT NULL COMMENT '分类名称',
   `code` varchar(20) NOT NULL COMMENT '分类代码',
-  `icon` varchar(20) DEFAULT NULL COMMENT '分类图标',
+  `icon` varchar(50) DEFAULT NULL COMMENT '分类图标',
   `description` varchar(200) DEFAULT NULL COMMENT '分类描述',
   `post_count` int DEFAULT 0 COMMENT '帖子数量',
   `sort` int DEFAULT 0 COMMENT '排序',
@@ -98,13 +98,11 @@ CREATE TABLE `user_likes` (
 
 -- 初始化默认分类数据
 INSERT INTO `categories` (`id`, `name`, `code`, `icon`, `description`, `sort`) VALUES
-(1, '全部', 'all', '📋', '所有分类的帖子', 0),
-(2, '技术', 'tech', '💻', '技术分享、开发经验、编程技巧', 1),
-(3, '生活', 'life', '🏠', '日常生活、心情分享、生活感悟', 2),
-(4, '美食', 'food', '🍜', '美食制作、餐厅推荐、食谱分享', 3),
-(5, '旅行', 'travel', '✈️', '旅行攻略、景点推荐、游记分享', 4),
-(6, '读书', 'book', '📚', '书籍推荐、读书笔记、读后感', 5),
-(7, '运动', 'sport', '🏃', '运动健身、体育赛事、健康生活', 6);
+(1, '闲置', 'idle', '📦', '闲置物品交易、二手市场、物品分享', 1),
+(2, '美食', 'food', '🍜', '美食制作、餐厅推荐、食谱分享', 2),
+(3, '生活', 'life', '🏠', '日常生活、家居装饰、生活技巧', 3),
+(4, '交流', 'chat', '💬', '社区交流、话题讨论、经验分享', 4),
+(5, '其他', 'other', '📝', '其他话题、杂谈、综合内容', 5);
 
 -- 创建索引优化查询性能
 CREATE INDEX idx_posts_category_created_at ON posts(category, created_at DESC);
