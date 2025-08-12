@@ -176,7 +176,7 @@ func (s *AuthService) CheckUserExists(w http.ResponseWriter, r *http.Request) {
 	user, _ := s.userDao.GetUserByOpenId(openId)
 
 	if user == nil {
-		http.Error(w, "user missing register first!", http.StatusBadRequest)
+		http.Error(w, "user missing register first!", http.StatusUnauthorized)
 		return
 	}
 
