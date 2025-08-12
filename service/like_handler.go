@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -46,7 +47,13 @@ func (h *LikeHandler) ToggleLikeHandler(w http.ResponseWriter, r *http.Request) 
 	// 解析请求体
 	var req LikeRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Invalid request body: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// 验证请求体
+	if req.Action == "" {
+		http.Error(w, "Missing 'action' field in request body", http.StatusBadRequest)
 		return
 	}
 
@@ -62,6 +69,8 @@ func (h *LikeHandler) ToggleLikeHandler(w http.ResponseWriter, r *http.Request) 
 	// 调用服务
 	result, err := h.likeService.ToggleLike(postId, userId, &req)
 	if err != nil {
+		// 记录错误信息
+		fmt.Printf("点赞操作失败: postId=%d, userId=%d, action=%s, error=%v\n", postId, userId, req.Action, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

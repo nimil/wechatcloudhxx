@@ -22,11 +22,10 @@ func main() {
 	userHandler := service.NewUserHandler()
 	authHandler := service.NewAuthHandler()
 
-
 	// 统一的帖子路由处理器
 	http.HandleFunc("/api/posts/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
-		
+
 		// 精确匹配 /api/posts/
 		if path == "/api/posts/" {
 			switch r.Method {
@@ -41,7 +40,7 @@ func main() {
 			}
 			return
 		}
-		
+
 		// 处理 /api/posts/ 开头的路径
 		if strings.HasSuffix(path, "/comments") {
 			// 评论相关操作需要认证
@@ -66,7 +65,7 @@ func main() {
 			switch r.Method {
 			case http.MethodGet:
 				// 获取帖子详情不需要认证
-				postHandler.GetPostDetailHandler(w, r)
+				service.UserMiddleware(postHandler.GetPostDetailHandler)(w, r)
 			case http.MethodDelete:
 				// 删除帖子需要认证
 				service.UserMiddleware(postHandler.DeletePostHandler)(w, r)
@@ -86,8 +85,6 @@ func main() {
 	http.HandleFunc("/api/categories", service.UserMiddleware(categoryHandler.GetCategoriesHandler))
 	http.HandleFunc("/api/categories/publish", service.UserMiddleware(categoryHandler.GetPublishCategoriesHandler))
 	http.HandleFunc("/api/topics/hot", categoryHandler.GetHotTopicsHandler)
-
-
 
 	// 认证相关接口（不需要用户中间件）
 	http.HandleFunc("/api/auth/", authHandler.HandleAuthRequests)

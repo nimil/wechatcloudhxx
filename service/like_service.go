@@ -85,7 +85,7 @@ func (s *LikeService) ToggleLike(postId int64, userId int64, req *LikeRequest) (
 		}
 
 	default:
-		return nil, fmt.Errorf("无效的操作: %s", req.Action)
+		return nil, fmt.Errorf("无效的操作: %s，只支持 'like' 或 'unlike'", req.Action)
 	}
 
 	// 获取最新的点赞数
