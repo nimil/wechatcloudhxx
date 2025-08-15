@@ -267,9 +267,9 @@ git push
 
 ## 📞 联系方式
 
-- 项目维护者：[Your Name]
-- 邮箱：[your.email@example.com]
-- 微信：[your-wechat-id]
+- 项目维护者：[amin]
+- 邮箱：[nimilgg@qq.com]
+- 微信：[aminzdx]
 
 ## 🙏 致谢
 
